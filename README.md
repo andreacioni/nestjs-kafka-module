@@ -3,7 +3,7 @@
 [![NPM](https://nodei.co/npm/nest-kafka-module.png)](https://www.npmjs.com/package/nestjs-kafka-module)
 
 [![npm version](https://badge.fury.io/js/nestjs-kafka-module.svg)](https://badge.fury.io/js/nestjs-kafka-module)
-[![Build & Test](https://github.com/andreacioni/nestjs-kafka-module/actions/workflows/main.yml/badge.svg)](https://github.com/andreacioni/nestjs-kafka-module/actions/workflows/main.yml)![npm](https://img.shields.io/npm/dm/nestjs-kafka-module)
+[![Build & Test](https://github.com/andreacioni/nestjs-kafka-module/actions/workflows/main.yml/badge.svg)](https://github.com/andreacioni/nestjs-kafka-module/actions/workflows/main.yml)![npm](https://img.shields.io/npm/dm/nestjs-kafka-module) 
 ![npm bundle size](https://img.shields.io/bundlephobia/min/nestjs-kafka-module)  
 [![Maintainability](https://api.codeclimate.com/v1/badges/08079c0335462972d085/maintainability)](https://codeclimate.com/github/andreacioni/nestjs-kafka-module/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/08079c0335462972d085/test_coverage)](https://codeclimate.com/github/andreacioni/nestjs-kafka-module/test_coverage)
