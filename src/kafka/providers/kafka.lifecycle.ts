@@ -25,19 +25,19 @@ export default class KafkaLifecycleManager
 
   async onModuleDestroy() {
     if (
-      (this.config?.consumer?.autoConnect ?? true) &&
-      this.consumer &&
-      this.consumer.isConnected()
-    ) {
-      await consumerDisconnect(this.consumer);
-    }
-
-    if (
       (this.config?.producer?.autoConnect ?? true) &&
       this.producer &&
       this.producer.isConnected()
     ) {
       await producerDisconnect(this.producer);
+    }
+
+    if (
+      (this.config?.consumer?.autoConnect ?? true) &&
+      this.consumer &&
+      this.consumer.isConnected()
+    ) {
+      await consumerDisconnect(this.consumer);
     }
 
     this.client?.disconnect();

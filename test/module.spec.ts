@@ -146,7 +146,6 @@ describe("App produce and consume message asynchronously", () => {
   afterAll(async () => {
     await deleteTopic(admin);
     await app?.close();
-    //await app?.get(KafkaService).disconnect();
     await stopTestCompose(startedContainer);
   });
 
@@ -222,7 +221,6 @@ describe("App produce and consume message synchronously", () => {
     try {
       await deleteTopic(admin);
       await app?.close();
-      //await app?.get(KafkaService).disconnect();
     } finally {
       await stopTestCompose(startedContainer);
     }
@@ -279,9 +277,9 @@ describe("App produce and consume message synchronously", () => {
       });
     });
 
-    consumer.unsubscribe();
-
     expect(consumerFn).toHaveBeenCalledTimes(2);
+
+    consumer.unsubscribe();
   });
 });
 
@@ -393,8 +391,8 @@ describe("App produce and consume message with auto connect disabled", () => {
       });
     });
 
-    consumer.unsubscribe();
-
     expect(consumerFn).toHaveBeenCalledTimes(2);
+
+    consumer.unsubscribe();
   });
 });

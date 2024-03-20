@@ -2,7 +2,7 @@ import * as rdkafka from "node-rdkafka";
 
 export const producerConnect = async (
   producer: rdkafka.Producer,
-  options?: rdkafka.MetadataOptions,
+  options?: rdkafka.MetadataOptions
 ): Promise<void> => {
   await Promise.all([
     new Promise<void>((resolve, reject) => {
@@ -23,7 +23,7 @@ export const producerConnect = async (
 
 export const consumerConnect = async (
   consumer: rdkafka.KafkaConsumer,
-  options?: rdkafka.MetadataOptions,
+  options?: rdkafka.MetadataOptions
 ): Promise<void> => {
   await Promise.all([
     new Promise<void>((resolve, reject) => {
@@ -49,7 +49,7 @@ export const consumerConnect = async (
  */
 export const producerDisconnect = async (
   producer: rdkafka.Producer,
-  timeout?: number,
+  timeout?: number
 ): Promise<void> => {
   if (!producer.isConnected()) {
     return Promise.resolve();
@@ -80,9 +80,8 @@ export const producerDisconnect = async (
  * @param producer the consumer instance to disconnect
  */
 export const consumerDisconnect = async (
-  consumer: rdkafka.KafkaConsumer,
+  consumer: rdkafka.KafkaConsumer
 ): Promise<void> => {
-  consumer.unsubscribe();
   return new Promise<void>((resolve, reject) => {
     consumer.disconnect((err) => {
       if (err) {
