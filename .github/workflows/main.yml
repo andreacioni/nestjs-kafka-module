@@ -32,16 +32,12 @@ jobs:
         run: |
           docker compose pull
 
-      - name: Build
+      - name: Build & Test
         run: |
           npm run build
+          npm run coverage
 
-      - name: Test & Publish code coverage
+      - name: Publish code coverage
         uses: paambaati/codeclimate-action@v5.0.0
-        #env:
-        #  CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
-        with:
-          debug: true
-          coverageCommand: npm run coverage
-          coverageLocations: |
-            ${{github.workspace}}/coverage/*.lcov:lcov
+        env:
+          CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
