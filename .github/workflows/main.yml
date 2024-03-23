@@ -35,7 +35,7 @@ jobs:
       - name: Build & Test
         run: |
           npm run build
-          npm run coverage
+          npm run test:cov
 
       - name: Publish code coverage
         uses: paambaati/codeclimate-action@v5.0.0
