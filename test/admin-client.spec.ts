@@ -1,4 +1,3 @@
-// import * as request from 'supertest';
 import { NestApplication } from "@nestjs/core";
 import { Test } from "@nestjs/testing";
 import { IAdminClient, NewTopic } from "node-rdkafka";
@@ -114,7 +113,7 @@ describe("Test admin client instance", () => {
     });
 
     await expect(deletePromise).rejects.toThrow(
-      "Broker: Unknown topic or partition",
+      "Broker: Unknown topic or partition"
     );
   });
 });
