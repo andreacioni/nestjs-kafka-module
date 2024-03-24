@@ -55,6 +55,13 @@ import { KafkaModule } from "nestjs-kafka-module";
 export class ApplicationModule {}
 ```
 
+## Examples
+
+In the [example](example/) folder you can find examples of Nest application that uses this library. 
+
+
+## Async initialization
+
 It is possible to dynamically configure the module using `forRootAsync` method and pass, for instance, a `ConfigService` as shown below:
 
 ```typescript
