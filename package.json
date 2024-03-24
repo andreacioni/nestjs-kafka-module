@@ -44,7 +44,7 @@
     "@semantic-release/npm": "^11.0.3",
     "@semantic-release/release-notes-generator": "^12.1.0",
     "@types/jest": "26.0.13",
-    "@types/supertest": "2.0.10",
+    "@types/supertest": "6.0.2",
     "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "4.6.1",
     "@typescript-eslint/parser": "4.6.1",
