@@ -125,6 +125,26 @@ export class CatsService {
 
 By default, during `KafkaModule` initialization, a connection attempt is done automatically. However this implies that if the broker connection is not available (broker is temporary down/not accessible) during startup, the NestJS initialization may fail.
 
+Is it possible to change this behaviour using `autoConnect` flag on `KafkaConsuner` and `Producer`:
+
+```typescript
+KafkaModule.forRoot({
+  consumer: {
+    autoConnect: false,
+    conf: {
+      "group.id": "nestjs-rdkafka-test",
+      "metadata.broker.list": "127.0.0.1:9092",
+    },
+  },
+  producer: {
+    autoConnect: false,
+    conf: {
+      "metadata.broker.list": "127.0.0.1:9092",
+    },
+  }
+})
+```
+
 ## Disconnect
 
 All clients will be automatically disconnected from Kafka `onModuleDestroy`. You can manually disconnect by calling:
