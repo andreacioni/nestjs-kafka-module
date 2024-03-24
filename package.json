@@ -8,6 +8,7 @@
     "node": ">=12.15.0"
   },
   "scripts": {
+    "prebuild": "rimraf dist",
     "build": "tsc -p tsconfig.build.json",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest --runInBand",
@@ -16,7 +17,8 @@
     "test:watch": "jest --runInBand --watch",
     "prepare": "husky",
     "commit": "git cz",
-    "prettier": "prettier --write ."
+    "prettier": "prettier --write .",
+    "start:example": "nest start -c example/nest-cli.standalone.json"
   },
   "repository": {
     "type": "git",
@@ -111,7 +113,7 @@
         "channel": "beta"
       }
     ],
-    "repositoryUrl": "https://github.com/a97001/nestjs-rdkafka"
+    "repositoryUrl": "https://github.com/andreacioni/nestjs-kafka-module"
   },
   "config": {
     "commitizen": {

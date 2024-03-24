@@ -17,5 +17,5 @@
     "esModuleInterop": true,
     "lib": ["esnext"]
   },
-  "exclude": ["node_modules", "dist", "build", "example"]
+  "exclude": ["node_modules", "dist", "build"]
 }

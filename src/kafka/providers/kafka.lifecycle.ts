@@ -29,7 +29,11 @@ export default class KafkaLifecycleManager
       this.producer &&
       this.producer.isConnected()
     ) {
-      await producerDisconnect(this.producer);
+      try {
+        await producerDisconnect(this.producer);
+      } catch (e) {
+        console.error("failed to disconnect producer: %s", e);
+      }
     }
 
     if (
@@ -37,10 +41,18 @@ export default class KafkaLifecycleManager
       this.consumer &&
       this.consumer.isConnected()
     ) {
-      await consumerDisconnect(this.consumer);
+      try {
+        await consumerDisconnect(this.consumer);
+      } catch (e) {
+        console.error("failed to disconnect consumer: %s", e);
+      }
     }
 
-    this.client?.disconnect();
+    try {
+      this.client?.disconnect();
+    } catch (e) {
+      console.error("failed to disconnect admin client: %s", e);
+    }
   }
 
   async onModuleInit() {
