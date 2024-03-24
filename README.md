@@ -55,7 +55,7 @@ import { KafkaModule } from "nestjs-kafka-module";
 export class ApplicationModule {}
 ```
 
-## Examples
+## Examples
 
 In the [example](example/) folder you can find examples of Nest application that uses this library. 
 
