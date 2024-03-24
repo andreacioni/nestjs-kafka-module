@@ -4,7 +4,7 @@
 
 [![npm version](https://badge.fury.io/js/nestjs-kafka-module.svg)](https://badge.fury.io/js/nestjs-kafka-module)
 [![Build & Test](https://github.com/andreacioni/nestjs-kafka-module/actions/workflows/main.yml/badge.svg)](https://github.com/andreacioni/nestjs-kafka-module/actions/workflows/main.yml)
-![npm](https://img.shields.io/npm/dm/nestjs-kafka-module) 
+![npm](https://img.shields.io/npm/dm/nestjs-kafka-module)
 ![npm bundle size](https://img.shields.io/bundlephobia/min/nestjs-kafka-module)  
 [![Maintainability](https://api.codeclimate.com/v1/badges/08079c0335462972d085/maintainability)](https://codeclimate.com/github/andreacioni/nestjs-kafka-module/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/08079c0335462972d085/test_coverage)](https://codeclimate.com/github/andreacioni/nestjs-kafka-module/test_coverage)
@@ -21,7 +21,7 @@ npm i nestjs-kafka-module
 
 ## Basic usage
 
-Initialize module with configuration of `consumer`, `producer` or `admin client` respectively. A full list of configuration can be found on `node-rdkafka`'s [Configuration](https://github.com/Blizzard/node-rdkafka#configuration) section.
+Initialize a `KafkaModule` with configuration for a `consumer`, `producer` or `adminClient` respectively. A full list of configuration can be found on `node-rdkafka`'s [Configuration](https://github.com/Blizzard/node-rdkafka#configuration) section.
 
 **app.module.ts**
 
@@ -107,14 +107,15 @@ It is not mandatory to define configuration for each `consumer`, `producer` or `
 **cats.service.ts**
 
 ```typescript
-import { Injectable } from "@nestjs/common";
+import { Injectable, Inject } from "@nestjs/common";
 
 @Injectable()
 export class CatsService {
   constructor(
     private readonly kafkaConsumer: KafkaConsumer,
     private readonly kafkaProducer: Producer,
-    private readonly kafkaAdminClient: AdminClient,
+    @Inject("KAFKA_ADMIN_CLIENT_PROVIDER")
+    private readonly kafkaAdminClient: AdminClient
   ) {
     /* Trying to get an instance of a provider without defining a dedicated configuration will result in an error. */
   }
@@ -125,7 +126,7 @@ export class CatsService {
 
 By default, during `KafkaModule` initialization, a connection attempt is done automatically. However this implies that if the broker connection is not available (broker is temporary down/not accessible) during startup, the NestJS initialization may fail.
 
-Is it possible to change this behaviour using `autoConnect` flag on `KafkaConsuner` and `Producer`:
+Is it possible to change this behavior using `autoConnect` flag on `KafkaConsuner` and `Producer` as shown below:
 
 ```typescript
 KafkaModule.forRoot({
@@ -141,8 +142,8 @@ KafkaModule.forRoot({
     conf: {
       "metadata.broker.list": "127.0.0.1:9092",
     },
-  }
-})
+  },
+});
 ```
 
 ## Disconnect
@@ -153,34 +154,6 @@ All clients will be automatically disconnected from Kafka `onModuleDestroy`. You
 await this.consumer?.disconnect();
 await this.producer?.disconnect();
 await this.adminClient?.disconnect();
-```
-
-You may also use some utility functions from this library to safe close producer and consumer connection:
-
-```typescript
-import { Injectable, Module } from "@nestjs/common";
-
-import {
-  safeProducerDisconnect,
-  safeConsumerDisconnect,
-} from "nestjs-kafka-module";
-
-@Injectable
-export class MyService {
-  async onModuleDestroy() {
-    try {
-      await safeConsumerDisconnect(this.consumer);
-    } catch (err) {
-      console.error(err);
-    }
-
-    try {
-      await safeProducerDisconnect(this.producer);
-    } catch (err) {
-      console.error(err);
-    }
-  }
-}
 ```
 
 ## License
