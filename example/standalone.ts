@@ -51,14 +51,12 @@ class AppService implements OnApplicationBootstrap, OnApplicationShutdown {
   imports: [
     KafkaModule.forRoot({
       consumer: {
-        autoConnect: false,
         conf: {
           "group.id": "nestjs-rdkafka-test",
           "metadata.broker.list": "127.0.0.1:9092",
         },
       },
       producer: {
-        autoConnect: false,
         conf: {
           "metadata.broker.list": "127.0.0.1:9092",
         },
