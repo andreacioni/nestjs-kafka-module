@@ -1,4 +1,4 @@
-name: release
+name: Release
 
 on:
   push:
@@ -7,13 +7,10 @@ on:
 
 jobs:
   build:
+    uses: ./.github/workflows/build.yml
+  release:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
-
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [16.x, 18.x, 20.x]
+    timeout-minutes: 3
 
     steps:
       - name: Checkout code
@@ -22,31 +19,18 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 20.x
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Download Kafka Docker image for tests
-        run: |
-          docker compose pull
-
-      - name: Build & Test
+      - name: Build
         run: |
           npm run build
-          npm run test:cov
 
-      - name: Publish code coverage
-        uses: paambaati/codeclimate-action@v5.0.0
-        env:
-          CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
-  
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
       - name: Publish to NPM registry
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      
