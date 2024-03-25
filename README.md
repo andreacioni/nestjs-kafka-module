@@ -21,7 +21,7 @@ npm i nestjs-kafka-module
 
 ## Basic usage
 
-Initialize a `KafkaModule` with configuration for a `consumer`, `producer` or `adminClient` respectively. A full list of configuration can be found on `node-rdkafka`'s [Configuration](https://github.com/Blizzard/node-rdkafka#configuration) section.
+Initialize a `KafkaModule` with configuration for a `consumer`, `producer` or `adminClient` respectively. A full list of configuration for each item can be found on `node-rdkafka`'s [Configuration](https://github.com/Blizzard/node-rdkafka#configuration) section.
 
 **app.module.ts**
 
@@ -52,7 +52,34 @@ import { KafkaModule } from "nestjs-kafka-module";
     }),
   ],
 })
-export class ApplicationModule {}
+export class AppModule {}
+```
+
+It is not mandatory to define configuration for any `consumer`, `producer` or `adminClient`, you're free to define just what you need. Keep in mind the table below showing which `Provider` is going to be available in your context based on the defined configuration:
+
+| Configuration | Provider                      |
+| ------------- | ----------------------------- |
+| consumer      | `KafkaConsumer`               |
+| producer      | `Producer`                    |
+| admin         | `KAFKA_ADMIN_CLIENT_PROVIDER` |
+
+**cats.service.ts**
+
+```typescript
+import { Injectable, Inject } from "@nestjs/common";
+import { KafkaConsumer, Producer, IAdminClient } from "node-rdkafka";
+
+@Injectable()
+export class CatsService {
+  constructor(
+    private readonly kafkaConsumer: KafkaConsumer,
+    private readonly kafkaProducer: Producer,
+    @Inject("KAFKA_ADMIN_CLIENT_PROVIDER")
+    private readonly kafkaAdminClient: IAdminClient
+  ) {
+    /* Trying to get an instance of a provider without defining a dedicated configuration will result in an error. */
+  }
+}
 ```
 
 ## Examples
@@ -101,32 +128,6 @@ import { KafkaModule } from "nestjs-kafka-module";
   ],
 })
 export class ApplicationModule {}
-```
-
-It is not mandatory to define configuration for each `consumer`, `producer` or `admin client`, you're free to define just what you need. Keep in mind the table below showing which Provider is going to be available to you for each defined configuration:
-
-| Configuration | Provider                      |
-| ------------- | ----------------------------- |
-| consumer      | `KafkaConsumer`               |
-| producer      | `Producer`                    |
-| admin         | `KAFKA_ADMIN_CLIENT_PROVIDER` |
-
-**cats.service.ts**
-
-```typescript
-import { Injectable, Inject } from "@nestjs/common";
-
-@Injectable()
-export class CatsService {
-  constructor(
-    private readonly kafkaConsumer: KafkaConsumer,
-    private readonly kafkaProducer: Producer,
-    @Inject("KAFKA_ADMIN_CLIENT_PROVIDER")
-    private readonly kafkaAdminClient: AdminClient
-  ) {
-    /* Trying to get an instance of a provider without defining a dedicated configuration will result in an error. */
-  }
-}
 ```
 
 ## Auto connect
