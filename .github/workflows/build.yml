@@ -39,6 +39,7 @@ jobs:
           npm run test
 
       - name: SonarCloud Scan
+        if: matrix.node-version == '20.x'
         uses: SonarSource/sonarcloud-github-action@master
         env:
           SONAR_TOKEN: ${{ secrets. SONARCLOUD_TOKEN }}
