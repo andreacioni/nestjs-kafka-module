@@ -37,3 +37,8 @@ jobs:
         run: |
           npm run build
           npm run test
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets. SONARCLOUD_TOKEN }}
