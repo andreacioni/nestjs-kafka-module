@@ -6,8 +6,10 @@
 [![Release](https://github.com/andreacioni/nestjs-kafka-module/actions/workflows/release.yml/badge.svg)](https://github.com/andreacioni/nestjs-kafka-module/actions/workflows/release.yml)
 ![npm](https://img.shields.io/npm/dm/nestjs-kafka-module)
 ![npm bundle size](https://img.shields.io/bundlephobia/min/nestjs-kafka-module)  
-[![Maintainability](https://api.codeclimate.com/v1/badges/08079c0335462972d085/maintainability)](https://codeclimate.com/github/andreacioni/nestjs-kafka-module/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/08079c0335462972d085/test_coverage)](https://codeclimate.com/github/andreacioni/nestjs-kafka-module/test_coverage)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=andreacioni_nestjs-kafka-module&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=andreacioni_nestjs-kafka-module)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=andreacioni_nestjs-kafka-module&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=andreacioni_nestjs-kafka-module)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=andreacioni_nestjs-kafka-module&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=andreacioni_nestjs-kafka-module)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=andreacioni_nestjs-kafka-module&metric=coverage)](https://sonarcloud.io/summary/new_code?id=andreacioni_nestjs-kafka-module)
 
 ## Description
 
