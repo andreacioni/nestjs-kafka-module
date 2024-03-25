@@ -55,14 +55,6 @@ import { KafkaModule } from "nestjs-kafka-module";
 export class AppModule {}
 ```
 
-It is not mandatory to define configuration for any `consumer`, `producer` or `adminClient`, you're free to define just what you need. Keep in mind the table below showing which `Provider` is going to be available in your context based on the defined configuration:
-
-| Configuration | Provider                      |
-| ------------- | ----------------------------- |
-| consumer      | `KafkaConsumer`               |
-| producer      | `Producer`                    |
-| admin         | `KAFKA_ADMIN_CLIENT_PROVIDER` |
-
 **cats.service.ts**
 
 ```typescript
@@ -81,6 +73,14 @@ export class CatsService {
   }
 }
 ```
+
+It is not mandatory to define configuration for any `consumer`, `producer` or `adminClient`, you're free to define just what you need. Keep in mind the table below showing which `Provider` is going to be available in your context based on the defined configuration:
+
+| Configuration | Provider                      |
+| ------------- | ----------------------------- |
+| consumer      | `KafkaConsumer`               |
+| producer      | `Producer`                    |
+| admin         | `KAFKA_ADMIN_CLIENT_PROVIDER` |
 
 ## Examples
 
