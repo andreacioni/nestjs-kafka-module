@@ -335,9 +335,9 @@ describe("App produce and consume message with auto connect disabled", () => {
 
   afterAll(async () => {
     try {
-      await deleteTopic(admin);
       await producerDisconnect(producer);
       await consumerDisconnect(consumer);
+      await deleteTopic(admin);
     } finally {
       await stopTestCompose(startedContainer);
     }
