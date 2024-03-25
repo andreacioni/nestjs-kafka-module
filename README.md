@@ -154,7 +154,7 @@ KafkaModule.forRoot({
 });
 ```
 
-## Disconnect
+### Disconnect
 
 All clients will be automatically disconnected from Kafka `onModuleDestroy`. You can manually disconnect by calling:
 
