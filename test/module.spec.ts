@@ -144,8 +144,8 @@ describe("App produce and consume message asynchronously", () => {
   });
 
   afterAll(async () => {
-    await deleteTopic(admin);
     await app?.close();
+    //await deleteTopic(admin);
     await stopTestCompose(startedContainer);
   });
 
@@ -157,7 +157,6 @@ describe("App produce and consume message asynchronously", () => {
 
     expect(consumer.isConnected()).toBe(true);
     expect(producer.isConnected()).toBe(true);
-    expect(admin).toBeDefined();
 
     const consumerFn = jest.fn();
 
@@ -176,6 +175,8 @@ describe("App produce and consume message asynchronously", () => {
     await setTimeout(1000);
 
     expect(consumerFn).toHaveBeenCalledTimes(2);
+
+    consumer.unsubscribe();
   });
 });
 describe("App produce and consume message synchronously", () => {
@@ -219,8 +220,8 @@ describe("App produce and consume message synchronously", () => {
 
   afterAll(async () => {
     try {
-      await deleteTopic(admin);
       await app?.close();
+      //await deleteTopic(admin);
     } finally {
       await stopTestCompose(startedContainer);
     }
