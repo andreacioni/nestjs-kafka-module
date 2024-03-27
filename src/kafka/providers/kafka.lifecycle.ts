@@ -1,4 +1,4 @@
-import { OnModuleDestroy, OnModuleInit } from "@nestjs/common";
+import { BeforeApplicationShutdown, OnModuleInit } from "@nestjs/common";
 import { IAdminClient, KafkaConsumer, Producer } from "node-rdkafka";
 import { KafkaConnectionOptions } from "../interfaces/kafka-connection-options";
 import {
@@ -14,7 +14,7 @@ import {
  * @internal
  */
 export default class KafkaLifecycleManager
-  implements OnModuleInit, OnModuleDestroy
+  implements BeforeApplicationShutdown, OnModuleInit
 {
   constructor(
     private readonly config: KafkaConnectionOptions,
@@ -23,7 +23,8 @@ export default class KafkaLifecycleManager
     private readonly client: IAdminClient
   ) {}
 
-  async onModuleDestroy() {
+  async beforeApplicationShutdown() {
+    console.log("disconnect producer");
     if (
       (this.config?.producer?.autoConnect ?? true) &&
       this.producer &&
@@ -36,6 +37,7 @@ export default class KafkaLifecycleManager
       }
     }
 
+    console.log("disconnect consumer");
     if (
       (this.config?.consumer?.autoConnect ?? true) &&
       this.consumer &&
@@ -48,6 +50,7 @@ export default class KafkaLifecycleManager
       }
     }
 
+    console.log("disconnect admin");
     try {
       this.client?.disconnect();
     } catch (e) {
