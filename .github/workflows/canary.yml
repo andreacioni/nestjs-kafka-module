@@ -1,0 +1,56 @@
+name: Nightly Build
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # Executes every night at 6:00 AM UTC
+
+jobs:
+  build:
+    name: Nightly Build
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x, 20.x]
+        app: [standalone]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+      
+      - name: Setup a new folder and copy example file
+        run: |
+          EXAMPLE_FOLDER=/tmp/${{ matrix.app }}
+          mkdir $EXAMPLE_FOLDER
+          mv example/${{ matrix.app }}.ts $EXAMPLE_FOLDER
+          cd $EXAMPLE_FOLDER
+          
+      - name: Install Dependencies
+        run: |
+          # Install dependencies
+          npm install @nestjs/common@^9.0.0 @nestjs/core@^9.0.0 @nestjs/platform-express@^9.0.0 reflect-metadata@^0.1.13 rxjs@^7.5.0 typescript@^4.5.5
+          
+          # Install devDependencies
+          npm install --save-dev @nestjs/cli@^9.0.0 @nestjs/schematics@^9.0.0 @nestjs/testing@^9.0.0 @types/express@^4.17.13 @types/jest@^27.0.4 @types/node@^17.0.4 @typescript-eslint/eslint-plugin@^5.3.0 @typescript-eslint/parser@^5.3.0 eslint@^8.10.0 jest@^27.4.6 prettier@^2.5.1 ts-jest@^27.0.6 ts-loader@^9.2.6 ts-node@^10.4.0 tsconfig-paths@^3.10.1 typescript@^4.5.5
+          
+          # Install nestjs-kafka-module
+          npm install nestjs-kafka-module
+          
+          # Create new scaffolding project
+          npm run -- nest new my-nest-project
+
+          #Clear generated data and replace that with sample file
+          rm -rf src/*
+          mv ./${{ matrix.app }}.ts ./src/
+
+      - name: Run Tests
+        run: |
+          npm start &
+          sleep 10s
+          kill -2 $(pidof node)
+          sleep 10s
