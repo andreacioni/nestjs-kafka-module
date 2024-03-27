@@ -1,41 +1,42 @@
-import {
-  Inject,
-  Module,
-  OnApplicationBootstrap,
-  OnApplicationShutdown,
-} from "@nestjs/common";
+import { Inject, Module, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
-import { IAdminClient, KafkaConsumer, Producer } from "node-rdkafka";
+import { IAdminClient, KafkaConsumer, Message, Producer } from "node-rdkafka";
 import { KafkaModule } from "../src/kafka/kafka.module";
 import { KAFKA_ADMIN_CLIENT_PROVIDER } from "../src/kafka/providers/kafka.connection";
 
 import { promisify } from "node:util";
 
-class AppService implements OnApplicationBootstrap, OnApplicationShutdown {
+class AppService implements OnModuleDestroy, OnModuleInit {
   private interval: NodeJS.Timeout;
+  private counter: number = 0;
 
   constructor(
     private readonly consumer: KafkaConsumer,
     private readonly producer: Producer,
     @Inject(KAFKA_ADMIN_CLIENT_PROVIDER) private readonly admin: IAdminClient
   ) {}
-  async onApplicationBootstrap() {
+
+  private consume(message: Message): void {
+    console.log("message received: %s", message.value);
+  }
+
+  private produce(): void {
+    const msg = Buffer.from((this.counter++).toString());
+    this.producer.produce("DEMO_TOPIC", null, msg);
+    console.log("message sent: %s", msg);
+  }
+
+  async onModuleInit() {
     //CONSUMER
     this.consumer.subscribe(["DEMO_TOPIC"]);
-    this.consumer.on("data", (message) => {
-      console.log("message received: %s", message.value);
-    });
+    this.consumer.on("data", this.consume.bind(this));
     this.consumer.consume();
 
     //PRODUCE
-    let i = 0;
-    this.interval = setInterval(() => {
-      const msg = Buffer.from((i++).toString());
-      this.producer.produce("DEMO_TOPIC", null, msg);
-      console.log("message sent: %s", msg);
-    }, 1000);
+    this.interval = setInterval(this.produce.bind(this), 1000);
   }
-  async onApplicationShutdown(signal?: string) {
+
+  async onModuleDestroy(signal?: string) {
     console.log("received signal: %s", signal);
     try {
       clearInterval(this.interval);
@@ -75,9 +76,7 @@ class AppModule {}
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.enableShutdownHooks();
-
-  await app.listen(3000);
+  await app.enableShutdownHooks().listen(3000);
   console.log(`Application is running on: ${await app.getUrl()}`);
 }
 bootstrap();
