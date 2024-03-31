@@ -24,7 +24,6 @@ export default class KafkaLifecycleManager
   ) {}
 
   async beforeApplicationShutdown() {
-    console.log("disconnect producer");
     if (
       (this.config?.producer?.autoConnect ?? true) &&
       this.producer &&
@@ -37,7 +36,6 @@ export default class KafkaLifecycleManager
       }
     }
 
-    console.log("disconnect consumer");
     if (
       (this.config?.consumer?.autoConnect ?? true) &&
       this.consumer &&
@@ -50,7 +48,6 @@ export default class KafkaLifecycleManager
       }
     }
 
-    console.log("disconnect admin");
     try {
       this.client?.disconnect();
     } catch (e) {
