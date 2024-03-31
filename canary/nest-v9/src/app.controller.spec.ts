@@ -1,6 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { KafkaModule } from "nestjs-kafka-module/dist/src/index";
-import { KAFKA_ADMIN_CLIENT_PROVIDER } from "nestjs-kafka-module/dist/src/kafka/providers/kafka.connection";
+import { KAFKA_ADMIN_CLIENT_PROVIDER, KafkaModule } from "nestjs-kafka-module";
 import { IAdminClient, KafkaConsumer, Producer } from "node-rdkafka";
 import { AppController } from "./app.controller";
 import { AppModule } from "./app.module";
