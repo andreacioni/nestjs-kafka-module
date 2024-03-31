@@ -36,6 +36,9 @@ jobs:
           
           # Install nestjs-kafka-module
           npm install nestjs-kafka-module
+
+          # Show installed dependencies
+          npm ls
           
           # Test
           npm test
