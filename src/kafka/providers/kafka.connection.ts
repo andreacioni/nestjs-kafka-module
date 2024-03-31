@@ -14,32 +14,23 @@ export const KAFKA_CONFIGURATION_PROVIDER = " KAFKA_CONFIGURATION";
 export function createConsumer(
   options: KafkaConsumerOptions
 ): rdkafka.KafkaConsumer {
-  try {
-    const consumer = new rdkafka.KafkaConsumer(options.conf, options.topicConf);
+  const consumer = new rdkafka.KafkaConsumer(
+    options.conf,
+    options.topicConf ?? {}
+  );
 
-    return consumer;
-  } catch (err) {
-    throw err;
-  }
+  return consumer;
 }
 
 function createProducer(options: KafkaProducerOptions): rdkafka.Producer {
-  try {
-    const producer = new rdkafka.Producer(options.conf, options.topicConf);
-    return producer;
-  } catch (err) {
-    throw err;
-  }
+  const producer = new rdkafka.Producer(options.conf, options.topicConf);
+  return producer;
 }
 
 function createAdminClient(
   options: KafkaAdminClientOptions
 ): rdkafka.IAdminClient {
-  try {
-    return rdkafka.AdminClient.create(options.conf);
-  } catch (err) {
-    throw err;
-  }
+  return rdkafka.AdminClient.create(options.conf);
 }
 
 export function getKafkaConnectionProviderList(
@@ -73,7 +64,9 @@ export function getAsyncKafkaConnectionProvider(
     {
       provide: KAFKA_ADMIN_CLIENT_PROVIDER,
       inject: options.inject,
-      useFactory: async (...args: any[]): Promise<rdkafka.IAdminClient> => {
+      useFactory: async (
+        ...args: any[]
+      ): Promise<rdkafka.IAdminClient | undefined> => {
         const connectionOptions = await options.useFactory(...args);
 
         return (
@@ -85,7 +78,9 @@ export function getAsyncKafkaConnectionProvider(
     {
       provide: rdkafka.KafkaConsumer,
       inject: options.inject,
-      useFactory: async (...args: any[]): Promise<rdkafka.KafkaConsumer> => {
+      useFactory: async (
+        ...args: any[]
+      ): Promise<rdkafka.KafkaConsumer | undefined> => {
         const connectionOptions = await options.useFactory(...args);
 
         return (
@@ -97,7 +92,9 @@ export function getAsyncKafkaConnectionProvider(
     {
       provide: rdkafka.Producer,
       inject: options.inject,
-      useFactory: async (...args: any[]): Promise<rdkafka.Producer> => {
+      useFactory: async (
+        ...args: any[]
+      ): Promise<rdkafka.Producer | undefined> => {
         const connectionOptions = await options.useFactory(...args);
 
         return (

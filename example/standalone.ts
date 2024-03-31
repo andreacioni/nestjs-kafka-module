@@ -7,7 +7,7 @@ import { KAFKA_ADMIN_CLIENT_PROVIDER } from "../src/kafka/providers/kafka.connec
 import { promisify } from "node:util";
 
 class AppService implements OnModuleDestroy, OnModuleInit {
-  private interval: NodeJS.Timeout;
+  private interval: NodeJS.Timeout | undefined;
   private counter: number = 0;
 
   constructor(

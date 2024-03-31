@@ -2,6 +2,7 @@
   "compilerOptions": {
     "module": "commonjs",
     "declaration": true,
+    "strict": true,
     "noImplicitAny": false,
     "strictBindCallApply": true,
     "strictFunctionTypes": true,
@@ -10,12 +11,14 @@
     "experimentalDecorators": true,
     "target": "es2017",
     "sourceMap": true,
-    "outDir": "build",
+    "outDir": "dist",
     "baseUrl": "./",
     "incremental": true,
     "tsBuildInfoFile": ".tsbuildinfo",
     "esModuleInterop": true,
-    "lib": ["esnext"]
+    "lib": ["esnext"],
+    
   },
-  "exclude": ["node_modules", "dist", "build"]
+  "exclude": ["node_modules", "dist", "build", "canary", "test", "example"],
+  
 }
