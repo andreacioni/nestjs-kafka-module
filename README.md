@@ -21,6 +21,14 @@ A [NestJS](https://nestjs.com/) module wrapper for [node-rdkafka](https://github
 npm i nestjs-kafka-module
 ```
 
+Requirements:
+
+|         | Min | Max |
+| ------- | --- | --- |
+| Node.JS | 16  | 20  |
+| NestJS  | 8   | 10  |
+|         |     |     |
+
 ## Basic usage
 
 Initialize a `KafkaModule` with configuration for a `consumer`, `producer` or `adminClient` respectively. A full list of configuration for each item can be found on `node-rdkafka`'s [Configuration](https://github.com/Blizzard/node-rdkafka#configuration) section.
@@ -87,8 +95,7 @@ It is not mandatory to define configuration for any `consumer`, `producer` or `a
 
 ## Examples
 
-In the [example](example/) folder you can find examples of Nest application that uses this library. 
-
+In the [example](example/) folder you can find examples of Nest application that uses this library.
 
 ## Async initialization
 
