@@ -62,13 +62,14 @@ export class AppModule {}
 ```typescript
 import { Injectable, Inject } from "@nestjs/common";
 import { KafkaConsumer, Producer, IAdminClient } from "node-rdkafka";
+import { KAFKA_ADMIN_CLIENT_PROVIDER } from "nestjs-kafka-module";
 
 @Injectable()
 export class CatsService {
   constructor(
     private readonly kafkaConsumer: KafkaConsumer,
     private readonly kafkaProducer: Producer,
-    @Inject("KAFKA_ADMIN_CLIENT_PROVIDER")
+    @Inject(KAFKA_ADMIN_CLIENT_PROVIDER)
     private readonly kafkaAdminClient: IAdminClient
   ) {
     /* Trying to get an instance of a provider without defining a dedicated configuration will result in an error. */
