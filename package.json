@@ -62,7 +62,7 @@
     "semantic-release": "^23.0.2",
     "testcontainers": "^10.7.1",
     "ts-jest": "29.1.2",
-    "typescript": "5.0.4"
+    "typescript": "5.4.3"
   },
   "dependencies": {
     "node-rdkafka": "^2.18.0"
