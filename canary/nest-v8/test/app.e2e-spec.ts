@@ -51,11 +51,9 @@ describe("AppController (e2e)", () => {
       .expect("Hello World!");
   });
 
-  describe("root", () => {
-    it('should be defined"', () => {
-      expect(consumer).toBeDefined();
-      expect(producer).toBeDefined();
-      expect(adminClient).toBeDefined();
-    });
+  it('should be defined"', () => {
+    expect(consumer).toBeDefined();
+    expect(producer).toBeDefined();
+    expect(adminClient).toBeDefined();
   });
 });
