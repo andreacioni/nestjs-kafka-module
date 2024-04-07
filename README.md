@@ -27,7 +27,6 @@ Requirements:
 | ------- | --- | --- |
 | Node.JS | 16  | 20  |
 | NestJS  | 8   | 10  |
-|         |     |     |
 
 ## Basic usage
 
