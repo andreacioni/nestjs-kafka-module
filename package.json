@@ -58,7 +58,7 @@
     "lint-staged": "^15.2.2",
     "prettier": "3.2.5",
     "prettier-plugin-organize-imports": "^3.2.4",
-    "reflect-metadata": "^0.1.13",
+    "reflect-metadata": "^0.2.2",
     "semantic-release": "^23.0.2",
     "testcontainers": "^10.7.1",
     "ts-jest": "29.1.2",
