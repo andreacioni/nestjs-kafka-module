@@ -65,7 +65,7 @@
     "typescript": "5.4.5"
   },
   "dependencies": {
-    "node-rdkafka": "^2.18.0"
+    "node-rdkafka": "^3.0.0"
   },
   "jest": {
     "moduleFileExtensions": [
