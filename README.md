@@ -25,7 +25,7 @@ Requirements:
 
 |         | Min | Max |
 | ------- | --- | --- |
-| Node.JS | 16  | 20  |
+| Node.JS | 16  | 22  |
 | NestJS  | 8   | 10  |
 
 ## Basic usage
