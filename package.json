@@ -116,5 +116,16 @@
   },
   "dependencies": {
     "@confluentinc/kafka-javascript": "^1.2.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "**/*.ts": [
+      "prettier --write",
+      "git add"
+    ]
   }
 }
