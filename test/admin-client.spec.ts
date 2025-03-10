@@ -1,6 +1,6 @@
+import { IAdminClient, NewTopic } from "@confluentinc/kafka-javascript";
 import { NestApplication } from "@nestjs/core";
 import { Test } from "@nestjs/testing";
-import { IAdminClient, NewTopic } from "node-rdkafka";
 import { StartedDockerComposeEnvironment } from "testcontainers";
 import { KafkaModule } from "../src";
 import { KAFKA_ADMIN_CLIENT_PROVIDER } from "../src/kafka/providers/kafka.connection";
@@ -13,11 +13,7 @@ describe("App start and stop even if the admin client is not reachable", () => {
     const moduleFixture = await Test.createTestingModule({
       imports: [
         KafkaModule.forRoot({
-          adminClient: {
-            conf: {
-              "metadata.broker.list": "127.0.0.1:9999",
-            },
-          },
+          adminClient: { conf: { "metadata.broker.list": "127.0.0.1:9999" } },
         }),
       ],
     }).compile();
@@ -45,11 +41,7 @@ describe("Test admin client instance", () => {
     const moduleFixture = await Test.createTestingModule({
       imports: [
         KafkaModule.forRoot({
-          adminClient: {
-            conf: {
-              "metadata.broker.list": "127.0.0.1:9092",
-            },
-          },
+          adminClient: { conf: { "metadata.broker.list": "127.0.0.1:9092" } },
         }),
       ],
     }).compile();

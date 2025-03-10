@@ -68,7 +68,7 @@ export class AppModule {}
 
 ```typescript
 import { Injectable, Inject } from "@nestjs/common";
-import { KafkaConsumer, Producer, IAdminClient } from "node-rdkafka";
+import { KafkaConsumer, Producer, IAdminClient } from "@confluentinc/kafka-javascript";
 import { KAFKA_ADMIN_CLIENT_PROVIDER } from "nestjs-kafka-module";
 
 @Injectable()

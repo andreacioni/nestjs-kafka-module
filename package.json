@@ -64,9 +64,6 @@
     "ts-jest": "29.2.6",
     "typescript": "5.5.2"
   },
-  "dependencies": {
-    "node-rdkafka": "^3.0.0"
-  },
   "jest": {
     "moduleFileExtensions": [
       "js",
@@ -116,5 +113,8 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
+  },
+  "dependencies": {
+    "@confluentinc/kafka-javascript": "^1.2.0"
   }
 }

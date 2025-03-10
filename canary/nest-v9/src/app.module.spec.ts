@@ -1,6 +1,10 @@
+import {
+  IAdminClient,
+  KafkaConsumer,
+  Producer,
+} from "@confluentinc/kafka-javascript";
 import { Test, TestingModule } from "@nestjs/testing";
 import { KAFKA_ADMIN_CLIENT_PROVIDER, KafkaModule } from "nestjs-kafka-module";
-import { IAdminClient, KafkaConsumer, Producer } from "node-rdkafka";
 import { AppController } from "./app.controller";
 import { AppModule } from "./app.module";
 import { AppService } from "./app.service";

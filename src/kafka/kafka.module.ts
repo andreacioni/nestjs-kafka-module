@@ -1,5 +1,9 @@
+import {
+  IAdminClient,
+  KafkaConsumer,
+  Producer,
+} from "@confluentinc/kafka-javascript";
 import { DynamicModule, Provider } from "@nestjs/common";
-import { IAdminClient, KafkaConsumer, Producer } from "node-rdkafka";
 import {
   KafkaConnectionAsyncOptions,
   KafkaConnectionOptions,

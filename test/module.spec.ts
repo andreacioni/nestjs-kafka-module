@@ -1,7 +1,11 @@
+import {
+  IAdminClient,
+  KafkaConsumer,
+  Producer,
+} from "@confluentinc/kafka-javascript";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { NestApplication } from "@nestjs/core";
 import { Test } from "@nestjs/testing";
-import { IAdminClient, KafkaConsumer, Producer } from "node-rdkafka";
 import { setTimeout } from "node:timers/promises";
 import { StartedDockerComposeEnvironment } from "testcontainers";
 import { KafkaModule } from "../src";
@@ -17,11 +21,7 @@ import { startTestCompose, stopTestCompose } from "./testcontainers-utils";
 const createTopic = async (admin: IAdminClient) => {
   await new Promise<void>((resolve, reject) => {
     admin.createTopic(
-      {
-        num_partitions: 1,
-        replication_factor: 1,
-        topic: "test_topic",
-      },
+      { num_partitions: 1, replication_factor: 1, topic: "test_topic" },
       (err) => {
         if (err) {
           reject(err);
@@ -121,16 +121,8 @@ describe("App produce and consume message asynchronously", () => {
               "metadata.broker.list": "127.0.0.1:9092",
             },
           },
-          producer: {
-            conf: {
-              "metadata.broker.list": "127.0.0.1:9092",
-            },
-          },
-          adminClient: {
-            conf: {
-              "metadata.broker.list": "127.0.0.1:9092",
-            },
-          },
+          producer: { conf: { "metadata.broker.list": "127.0.0.1:9092" } },
+          adminClient: { conf: { "metadata.broker.list": "127.0.0.1:9092" } },
         }),
       ],
     }).compile();
@@ -196,16 +188,8 @@ describe("App produce and consume message synchronously", () => {
               "metadata.broker.list": "127.0.0.1:9092",
             },
           },
-          producer: {
-            conf: {
-              "metadata.broker.list": "127.0.0.1:9092",
-            },
-          },
-          adminClient: {
-            conf: {
-              "metadata.broker.list": "127.0.0.1:9092",
-            },
-          },
+          producer: { conf: { "metadata.broker.list": "127.0.0.1:9092" } },
+          adminClient: { conf: { "metadata.broker.list": "127.0.0.1:9092" } },
         }),
       ],
     }).compile();
@@ -312,11 +296,7 @@ describe("App produce and consume message with auto connect disabled", () => {
               "metadata.broker.list": "localhost:9092",
             },
           },
-          adminClient: {
-            conf: {
-              "metadata.broker.list": "127.0.0.1:9092",
-            },
-          },
+          adminClient: { conf: { "metadata.broker.list": "127.0.0.1:9092" } },
         }),
       ],
     }).compile();

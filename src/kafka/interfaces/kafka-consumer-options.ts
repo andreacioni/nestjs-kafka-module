@@ -1,4 +1,4 @@
-import * as rdkafka from "node-rdkafka";
+import * as rdkafka from "@confluentinc/kafka-javascript";
 
 export interface KafkaConsumerOptions {
   conf: rdkafka.ConsumerGlobalConfig;

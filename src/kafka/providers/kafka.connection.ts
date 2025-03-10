@@ -1,5 +1,5 @@
+import * as rdkafka from "@confluentinc/kafka-javascript";
 import { Provider } from "@nestjs/common";
-import * as rdkafka from "node-rdkafka";
 import { KafkaAdminClientOptions } from "../interfaces/kafka-admin-client-options";
 import {
   KafkaConnectionAsyncOptions,
@@ -46,14 +46,8 @@ export function getKafkaConnectionProviderList(
   return [
     { provide: KAFKA_CONFIGURATION_PROVIDER, useValue: options },
     { provide: KAFKA_ADMIN_CLIENT_PROVIDER, useValue: adminClient },
-    {
-      provide: rdkafka.KafkaConsumer,
-      useValue: consumer,
-    },
-    {
-      provide: rdkafka.Producer,
-      useValue: producer,
-    },
+    { provide: rdkafka.KafkaConsumer, useValue: consumer },
+    { provide: rdkafka.Producer, useValue: producer },
   ];
 }
 

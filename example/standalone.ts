@@ -1,6 +1,11 @@
+import {
+  IAdminClient,
+  KafkaConsumer,
+  Message,
+  Producer,
+} from "@confluentinc/kafka-javascript";
 import { Inject, Module, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
-import { IAdminClient, KafkaConsumer, Message, Producer } from "node-rdkafka";
 import { KafkaModule } from "../src/kafka/kafka.module";
 import { KAFKA_ADMIN_CLIENT_PROVIDER } from "../src/kafka/providers/kafka.connection";
 
@@ -57,16 +62,8 @@ class AppService implements OnModuleDestroy, OnModuleInit {
           "metadata.broker.list": "127.0.0.1:9092",
         },
       },
-      producer: {
-        conf: {
-          "metadata.broker.list": "127.0.0.1:9092",
-        },
-      },
-      adminClient: {
-        conf: {
-          "metadata.broker.list": "127.0.0.1:9092",
-        },
-      },
+      producer: { conf: { "metadata.broker.list": "127.0.0.1:9092" } },
+      adminClient: { conf: { "metadata.broker.list": "127.0.0.1:9092" } },
     }),
   ],
   providers: [AppService],

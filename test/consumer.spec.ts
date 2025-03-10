@@ -1,5 +1,5 @@
+import { KafkaConsumer } from "@confluentinc/kafka-javascript";
 import { Test } from "@nestjs/testing";
-import { KafkaConsumer } from "node-rdkafka";
 import { KafkaModule } from "../src";
 
 describe("App start if the consumer can't connect and autoConnect=false", () => {
@@ -15,9 +15,7 @@ describe("App start if the consumer can't connect and autoConnect=false", () => 
               "group.id": "group.id",
               "metadata.broker.list": "127.0.0.1:9999",
             },
-            metadataConf: {
-              timeout: 1,
-            },
+            metadataConf: { timeout: 1 },
           },
         }),
       ],
@@ -43,9 +41,7 @@ describe("App doesn't start if the consumer can't connect and autoConnect=true",
               "group.id": "group.id",
               "metadata.broker.list": "127.0.0.1:9999",
             },
-            metadataConf: {
-              timeout: 1,
-            },
+            metadataConf: { timeout: 1 },
           },
         }),
       ],

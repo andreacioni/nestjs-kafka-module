@@ -1,5 +1,9 @@
+import {
+  IAdminClient,
+  KafkaConsumer,
+  Producer,
+} from "@confluentinc/kafka-javascript";
 import { BeforeApplicationShutdown, OnModuleInit } from "@nestjs/common";
-import { IAdminClient, KafkaConsumer, Producer } from "node-rdkafka";
 import { KafkaConnectionOptions } from "../interfaces/kafka-connection-options";
 import {
   consumerConnect,
