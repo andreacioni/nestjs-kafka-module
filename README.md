@@ -13,7 +13,7 @@
 
 ## Description
 
-A [NestJS](https://nestjs.com/) module wrapper for [node-rdkafka](https://github.com/Blizzard/node-rdkafka).
+A [NestJS](https://nestjs.com/) module wrapper for [@confluentinc/kafka-javascript](https://github.com/confluentinc/confluent-kafka-javascript).
 
 ## Installation
 
@@ -26,11 +26,11 @@ Requirements:
 |         | Min | Max |
 | ------- | --- | --- |
 | Node.JS | 16  | 22  |
-| NestJS  | 8   | 10  |
+| NestJS  | 8   | 11  |
 
 ## Basic usage
 
-Initialize a `KafkaModule` with configuration for a `consumer`, `producer` or `adminClient` respectively. A full list of configuration for each item can be found on `node-rdkafka`'s [Configuration](https://github.com/Blizzard/node-rdkafka#configuration) section.
+Initialize a `KafkaModule` with configuration for a `consumer`, `producer` or `adminClient` respectively. A full list of configuration for each item can be found on `@confluentinc/kafka-javascript`'s [Configuration](https://github.com/confluentinc/librdkafka/blob/v2.3.0/CONFIGURATION.md) section.
 
 **app.module.ts**
 
