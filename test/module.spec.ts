@@ -17,6 +17,7 @@ import {
   producerDisconnect,
 } from "../src/kafka/utils/kafka.utils";
 import { startTestCompose, stopTestCompose } from "./testcontainers-utils";
+import { promisify } from "util";
 
 const createTopic = async (admin: IAdminClient) => {
   await new Promise<void>((resolve, reject) => {
@@ -102,7 +103,7 @@ describe("App consuming KafkaModule build with forRootAsync", () => {
   it("should mock app defined", async () => {
     expect(app).toBeDefined();
   });
-});
+}); 
 
 describe("App produce and consume message asynchronously", () => {
   let app: NestApplication;
@@ -171,6 +172,7 @@ describe("App produce and consume message asynchronously", () => {
     consumer.unsubscribe();
   });
 });
+
 describe("App produce and consume message synchronously", () => {
   let app: NestApplication;
   let admin: IAdminClient;
@@ -319,6 +321,7 @@ describe("App produce and consume message with auto connect disabled", () => {
       await producerDisconnect(producer);
       await consumerDisconnect(consumer);
       await deleteTopic(admin);
+      admin.disconnect();
     } finally {
       await stopTestCompose(startedContainer);
     }
@@ -373,7 +376,7 @@ describe("App produce and consume message with auto connect disabled", () => {
     });
 
     expect(consumerFn).toHaveBeenCalledTimes(2);
-
+    
     consumer.unsubscribe();
   });
 });
