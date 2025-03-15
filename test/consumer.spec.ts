@@ -53,7 +53,7 @@ describe("App doesn't start if the consumer can't connect and autoConnect=true",
       await app.init();
     };
 
-    await expect(fn()).rejects.toThrow("Broker transport failure");
+    await expect(fn()).rejects.toThrow("broker transport failure");
   });
 });
 
@@ -90,6 +90,6 @@ describe("App fail fast if the consumer can't connect, autoConnect=false and tim
       });
     };
 
-    await expect(fn()).rejects.toThrow("Broker transport failure");
+    await expect(fn()).rejects.toThrow("broker transport failure");
   });
 });
