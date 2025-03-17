@@ -1,6 +1,7 @@
 import {
   IAdminClient,
   KafkaConsumer,
+  Metadata,
   Producer,
 } from "@confluentinc/kafka-javascript";
 import { ConfigModule, ConfigService } from "@nestjs/config";
@@ -378,5 +379,145 @@ describe("App produce and consume message with auto connect disabled", () => {
     expect(consumerFn).toHaveBeenCalledTimes(2);
     
     consumer.unsubscribe();
+  });
+});
+
+describe("Test call getMetadata on consumer and producer", () => {
+  let app: NestApplication;
+  let consumer: KafkaConsumer;
+  let producer: Producer;
+  let getConsumerMetadata: () => Promise<Metadata>;
+  let getProducerMetadata: () => Promise<Metadata>;
+
+  let startedContainer: StartedDockerComposeEnvironment;
+
+  beforeEach(async () => {
+    startedContainer = await startTestCompose();
+
+    const moduleFixture = await Test.createTestingModule({
+      imports: [
+        KafkaModule.forRoot({
+          consumer: {
+            autoConnect: false,
+            conf: {
+              "metadata.broker.list": "localhost:9092",
+              "group.id": "groupid123",
+            },
+          },
+          producer: {
+            autoConnect: false,
+            conf: {
+              "client.id": "kafka-mocha",
+              "metadata.broker.list": "localhost:9092",
+            },
+          },
+        }),
+      ],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    await app.init();
+
+    consumer = app.get(KafkaConsumer);
+    producer = app.get(Producer);
+
+    await producerConnect(producer);
+    await consumerConnect(consumer);
+
+    getConsumerMetadata = async () => {
+      return new Promise<Metadata>((resolve, reject) => {
+        consumer.getMetadata({timeout: 1000}, (err, metadata) => {
+          if (err) {
+            reject(err);
+          } else {
+            //console.log(metadata);
+            resolve(metadata);
+          }
+        });
+      }
+    )};
+
+    getProducerMetadata = async () => {
+      return new Promise<Metadata>((resolve, reject) => {
+        producer.getMetadata({timeout: 1000}, (err, metadata) => {
+          if (err) {
+            reject(err);
+          } else {          
+            resolve(metadata);
+          }
+        });
+      }
+    )};
+  });
+
+  afterEach(async () => {
+    try {
+      await producerDisconnect(producer);
+      await consumerDisconnect(consumer);
+    } finally {
+      await stopTestCompose(startedContainer);
+    }
+  });
+
+  it("get metadata not throw anything when connected", async () => {
+    expect(app).toBeDefined();
+
+    expect(consumer.isConnected()).toBe(true);
+    expect(producer.isConnected()).toBe(true);
+    
+    await expect(async () => getConsumerMetadata()).not.toThrow();
+    await expect(async () => getProducerMetadata()).not.toThrow();
+  });
+
+  it("get metadata throw error when consumer is not connected (client calls disconnect)", async () => {
+    expect(app).toBeDefined();
+
+    expect(consumer.isConnected()).toBe(true);
+    expect(producer.isConnected()).toBe(true);
+
+    await expect(getConsumerMetadata()).resolves.toBeDefined();
+
+    await consumerDisconnect(consumer)
+
+    await expect(getConsumerMetadata()).rejects.toThrow("Client is disconnected");
+  });
+
+  it("get metadata throw error when consumer is not connected (broker fails)", async () => {
+    expect(app).toBeDefined();
+
+    expect(consumer.isConnected()).toBe(true);
+    expect(producer.isConnected()).toBe(true);
+
+    await expect(getConsumerMetadata()).resolves.toBeDefined();
+
+    await stopTestCompose(startedContainer);
+
+    await expect(getConsumerMetadata()).rejects.toThrow("Local: Broker transport failure");
+  });
+
+  it("get metadata throw error when producer is not connected (client calls disconnect)", async () => {
+    expect(app).toBeDefined();
+
+    expect(consumer.isConnected()).toBe(true);
+    expect(producer.isConnected()).toBe(true);
+
+    await expect(getProducerMetadata()).resolves.toBeDefined();
+
+    await producerDisconnect(producer)
+
+    await expect(getProducerMetadata()).rejects.toThrow("Client is disconnected");
+  });
+
+  it("get metadata throw error when producer is not connected (broker fails)", async () => {
+    expect(app).toBeDefined();
+
+    expect(consumer.isConnected()).toBe(true);
+    expect(producer.isConnected()).toBe(true);
+
+    await expect(getProducerMetadata()).resolves.toBeDefined();
+
+    await stopTestCompose(startedContainer);
+
+    await expect(getProducerMetadata()).rejects.toThrow("Local: Broker transport failure");
   });
 });
