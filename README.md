@@ -25,7 +25,7 @@ Requirements:
 
 |         | Min | Max |
 | ------- | --- | --- |
-| Node.JS | 16  | 22  |
+| Node.JS | 18  | 22  |
 | NestJS  | 8   | 11  |
 
 ## Basic usage
@@ -163,7 +163,11 @@ KafkaModule.forRoot({
 });
 ```
 
-### Disconnect
+## Health check
+
+Thanks to `terminus` and its integration with NestJS is it possible
+
+## Disconnect
 
 All clients will be automatically disconnected from Kafka `onModuleDestroy`. You can manually disconnect by calling:
 
