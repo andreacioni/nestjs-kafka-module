@@ -1,4 +1,5 @@
 import * as rdkafka from "@confluentinc/kafka-javascript";
+import {SchemaRegistryClient} from "@confluentinc/schemaregistry";
 import { Provider } from "@nestjs/common";
 import { KafkaAdminClientOptions } from "../interfaces/kafka-admin-client-options";
 import {
@@ -7,6 +8,7 @@ import {
 } from "../interfaces/kafka-connection-options";
 import { KafkaConsumerOptions } from "../interfaces/kafka-consumer-options";
 import { KafkaProducerOptions } from "../interfaces/kafka-producer-options";
+import { KafkaSchemaRegistryClientOptions } from "../interfaces/kafka-schema-registry-options";
 
 export const KAFKA_ADMIN_CLIENT_PROVIDER = " KAFKA_ADMIN_CLIENT";
 export const KAFKA_CONFIGURATION_PROVIDER = " KAFKA_CONFIGURATION";
@@ -33,6 +35,12 @@ function createAdminClient(
   return rdkafka.AdminClient.create(options.conf);
 }
 
+function createSchemaRegistry(
+  options: KafkaSchemaRegistryClientOptions
+): SchemaRegistryClient {
+  return new SchemaRegistryClient(options.conf);
+}
+
 export function getKafkaConnectionProviderList(
   options: KafkaConnectionOptions
 ): Provider[] {
@@ -42,12 +50,15 @@ export function getKafkaConnectionProviderList(
     options.consumer && createConsumer(options.consumer);
   const producer: rdkafka.Producer | undefined =
     options.producer && createProducer(options.producer);
+  const schemaRegistry: SchemaRegistryClient | undefined =
+    options.schemaRegistry && createSchemaRegistry(options.schemaRegistry);
 
   return [
     { provide: KAFKA_CONFIGURATION_PROVIDER, useValue: options },
     { provide: KAFKA_ADMIN_CLIENT_PROVIDER, useValue: adminClient },
     { provide: rdkafka.KafkaConsumer, useValue: consumer },
     { provide: rdkafka.Producer, useValue: producer },
+    { provide: SchemaRegistryClient, useValue: schemaRegistry },
   ];
 }
 
@@ -97,5 +108,19 @@ export function getAsyncKafkaConnectionProvider(
         );
       },
     },
+    {
+      provide: SchemaRegistryClient,
+      inject: options.inject,
+      useFactory: async (
+        ...args: any[]
+      ): Promise<SchemaRegistryClient | undefined> => {
+        const connectionOptions = await options.useFactory(...args);
+
+        return (
+          connectionOptions.schemaRegistry &&
+          createSchemaRegistry(connectionOptions.schemaRegistry)
+        );
+      },
+    }
   ];
 }
