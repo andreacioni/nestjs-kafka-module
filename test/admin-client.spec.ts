@@ -1,4 +1,5 @@
 import { KafkaJS, NewTopic } from "@confluentinc/kafka-javascript";
+import { INestApplication } from "@nestjs/common";
 import { NestApplication } from "@nestjs/core";
 import { Test } from "@nestjs/testing";
 import { StartedDockerComposeEnvironment } from "testcontainers";
@@ -7,7 +8,7 @@ import { KAFKA_ADMIN_CLIENT_PROVIDER } from "../src/kafka/providers/kafka.connec
 import { startTestCompose, stopTestCompose } from "./testcontainers-utils";
 
 describe("App start and stop even if the admin client is not reachable", () => {
-  let app;
+  let app: INestApplication;
 
   beforeAll(async () => {
     const moduleFixture = await Test.createTestingModule({
@@ -23,7 +24,7 @@ describe("App start and stop even if the admin client is not reachable", () => {
   });
 
   afterAll(async () => {
-    app.close();
+    await app.close();
   });
 
   it("should mock app defined", async () => {
@@ -51,7 +52,7 @@ describe("Test admin client instance", () => {
   });
 
   afterAll(async () => {
-    app?.close();
+    await app?.close();
     await stopTestCompose(startedContainer);
   });
 

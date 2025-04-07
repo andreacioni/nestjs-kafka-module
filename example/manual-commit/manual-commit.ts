@@ -1,14 +1,10 @@
-import {
-  IAdminClient,
-  KafkaConsumer,
-  Message,
-  Producer,
-} from "@confluentinc/kafka-javascript";
+import { IAdminClient, KafkaJS } from "@confluentinc/kafka-javascript";
 import { Inject, Module, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { KafkaModule } from "../../src/kafka/kafka.module";
 import { KAFKA_ADMIN_CLIENT_PROVIDER } from "../../src/kafka/providers/kafka.connection";
 
+import { EachMessagePayload } from "@confluentinc/kafka-javascript/types/kafkajs";
 import { promisify } from "node:util";
 
 class AppService implements OnModuleDestroy, OnModuleInit {
@@ -16,42 +12,44 @@ class AppService implements OnModuleDestroy, OnModuleInit {
   private counter: number = 0;
 
   constructor(
-    private readonly consumer: KafkaConsumer,
-    private readonly producer: Producer,
+    private readonly consumer: KafkaJS.Consumer,
+    private readonly producer: KafkaJS.Producer,
     @Inject(KAFKA_ADMIN_CLIENT_PROVIDER) private readonly admin: IAdminClient
   ) {}
 
-  private consume(message: Message): void {
-    console.log("message received: %s", message.value);
-    this.consumer.commitMessage(message);
+  private async consume({
+    message,
+    topic,
+    partition,
+  }: EachMessagePayload): Promise<void> {
+    console.log("message received: %s", message.value?.toString());
+    await this.consumer.commitOffsets([
+      {
+        topic: topic,
+        partition: partition,
+        offset: (message.offset + 1).toString(),
+      },
+    ]);
     console.log("message committed: %s", message.value);
   }
 
-  private produce(): void {
+  private async produce(): Promise<void> {
     const msg = Buffer.from((this.counter++).toString());
-    this.producer.produce("DEMO_TOPIC", null, msg);
-    console.log("message sent: %s", msg);
+    const res = await this.producer.send({
+      topic: "DEMO_TOPIC",
+      messages: [{ value: msg }],
+    });
+    console.log("message sent: %s", res);
   }
 
   async onModuleInit() {
     //CONSUMER
-    this.consumer.subscribe(["DEMO_TOPIC"]);
-    this.consumer.on("data", this.consume.bind(this));
-    this.consumer.consume();
+    await this.consumer.subscribe({ topics: ["DEMO_TOPIC"] });
+    this.consumer.run({
+      eachMessage: this.consume.bind(this),
+    });
 
-    //PRODUCE
-    this.producer.on("event.error", (err) => {
-      console.error("producer error: %s", err);
-    });
-    this.producer.on("ready", (err) => {
-      console.log("producer ready: %s", err);
-    });
-    this.producer.on("delivery-report", (err, report) => {
-      if (err) {
-        console.error("failed to deliver message: %s", err);
-      }
-      console.log("message delivered: %s", report?.value?.toString());
-    });
+    //PRODUCER
     this.interval = setInterval(this.produce.bind(this), 1000);
   }
 
@@ -60,7 +58,6 @@ class AppService implements OnModuleDestroy, OnModuleInit {
     try {
       clearInterval(this.interval);
       await promisify(this.producer.flush.bind(this.producer))(10000);
-      this.consumer.unsubscribe();
     } catch (e) {
       console.error("failed to shutdown app service");
     }

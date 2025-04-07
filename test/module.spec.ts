@@ -339,7 +339,7 @@ describe("Test call getMetadata", () => {
 
   let startedContainer: StartedDockerComposeEnvironment;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     startedContainer = await startTestCompose();
 
     const moduleFixture = await Test.createTestingModule({
@@ -383,11 +383,13 @@ describe("Test call getMetadata", () => {
     };
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     try {
-      await producer.flush();
-      await producer.disconnect();
-      await consumer.disconnect();
+      let promises: Promise<void>[] = [];
+      promises.push(admin.disconnect());
+      promises.push(consumer.disconnect());
+      promises.push(producer.disconnect());
+      await Promise.all(promises);
     } finally {
       await stopTestCompose(startedContainer);
     }
@@ -419,6 +421,68 @@ describe("Test call getMetadata", () => {
     await expect(getMetadata()).rejects.toThrow(
       "Admin client is not connected"
     );
+  });
+});
+
+describe("Test call getMetadata when the broker has crashed", () => {
+  let app: NestApplication;
+  let consumer: KafkaJS.Consumer;
+  let admin: KafkaJS.Admin;
+  let producer: KafkaJS.Producer;
+  let getMetadata: () => Promise<{ topics: KafkaJS.ITopicMetadata[] }>;
+
+  let startedContainer: StartedDockerComposeEnvironment;
+
+  beforeAll(async () => {
+    startedContainer = await startTestCompose();
+
+    const moduleFixture = await Test.createTestingModule({
+      imports: [
+        KafkaModule.forRoot({
+          consumer: {
+            autoConnect: false,
+            conf: {
+              "metadata.broker.list": "localhost:9092",
+              "group.id": "groupid123",
+            },
+          },
+          producer: {
+            autoConnect: false,
+            conf: {
+              "client.id": "kafka-mocha",
+              "metadata.broker.list": "localhost:9092",
+            },
+          },
+          adminClient: {
+            conf: {
+              "bootstrap.servers": "localhost:9092",
+            },
+          },
+        }),
+      ],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    await app.init();
+
+    consumer = app.get(KAFKA_CONSUMER);
+    producer = app.get(KAFKA_PRODUCER);
+    admin = app.get(KAFKA_ADMIN_CLIENT_PROVIDER);
+
+    await producer.connect();
+    await consumer.connect();
+
+    getMetadata = async () => {
+      return await admin.fetchTopicMetadata({ timeout: 1000 });
+    };
+  });
+
+  afterAll(async () => {
+    let promises: Promise<void>[] = [];
+    promises.push(admin.disconnect());
+    promises.push(consumer.disconnect());
+    promises.push(producer.disconnect());
+    await Promise.all(promises);
   });
 
   it("get metadata not throw error when admins is not connected (broker fails)", async () => {

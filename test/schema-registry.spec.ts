@@ -30,7 +30,7 @@ describe("Schema registry connection and schema download", () => {
   });
 
   afterAll(async () => {
-    app?.close();
+    await app?.close();
     await stopTestCompose(startedContainer);
   });
 

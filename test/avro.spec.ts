@@ -25,7 +25,7 @@ describe("AVRO message produce and consume", () => {
   });
 
   afterAll(async () => {
-    app?.close();
+    await app?.close();
     await stopTestCompose(startedContainer);
   });
 
