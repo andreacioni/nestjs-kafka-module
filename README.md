@@ -68,7 +68,11 @@ export class AppModule {}
 
 ```typescript
 import { Injectable, Inject } from "@nestjs/common";
-import { KafkaConsumer, Producer, IAdminClient } from "@confluentinc/kafka-javascript";
+import {
+  KafkaConsumer,
+  Producer,
+  IAdminClient,
+} from "@confluentinc/kafka-javascript";
 import { KAFKA_ADMIN_CLIENT_PROVIDER } from "nestjs-kafka-module";
 
 @Injectable()
@@ -77,7 +81,8 @@ export class CatsService {
     private readonly kafkaConsumer: KafkaConsumer,
     private readonly kafkaProducer: Producer,
     @Inject(KAFKA_ADMIN_CLIENT_PROVIDER)
-    private readonly kafkaAdminClient: IAdminClient
+    private readonly kafkaAdminClient: IAdminClient,
+    private readonly schemaRegistry: SchemaRegistryClient,
   ) {
     /* Trying to get an instance of a provider without defining a dedicated configuration will result in an error. */
   }
@@ -86,11 +91,12 @@ export class CatsService {
 
 It is not mandatory to define configuration for any `consumer`, `producer` or `adminClient`, you're free to define just what you need. Keep in mind the table below showing which `Provider` is going to be available in your context based on the defined configuration:
 
-| Configuration | Provider                      |
-| ------------- | ----------------------------- |
-| consumer      | `KafkaConsumer`               |
-| producer      | `Producer`                    |
-| admin         | `KAFKA_ADMIN_CLIENT_PROVIDER` |
+| Configuration  | Provider                      |
+| -------------- | ----------------------------- |
+| consumer       | `KafkaConsumer`               |
+| producer       | `Producer`                    |
+| admin          | `KAFKA_ADMIN_CLIENT_PROVIDER` |
+| schemaRegistry | `SchemaRegistryClient`        |
 
 ## Examples
 
@@ -166,6 +172,8 @@ KafkaModule.forRoot({
 ## Health check
 
 Thanks to `terminus` and its integration with NestJS is it possible
+
+## Schema Registry
 
 ## Disconnect
 

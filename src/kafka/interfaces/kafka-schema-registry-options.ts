@@ -1,4 +1,4 @@
-import {ClientConfig} from "@confluentinc/schemaregistry";
+import { ClientConfig } from "@confluentinc/schemaregistry";
 
 export interface KafkaSchemaRegistryClientOptions {
   conf: ClientConfig;

@@ -1,6 +1,6 @@
-import { KafkaConsumer } from "@confluentinc/kafka-javascript";
+import { KafkaJS } from "@confluentinc/kafka-javascript";
 import { Test } from "@nestjs/testing";
-import { KafkaModule } from "../src";
+import { KAFKA_CONSUMER, KafkaModule } from "../src";
 
 describe("App start if the consumer can't connect and autoConnect=false", () => {
   let app;
@@ -15,7 +15,6 @@ describe("App start if the consumer can't connect and autoConnect=false", () => 
               "group.id": "group.id",
               "metadata.broker.list": "127.0.0.1:9999",
             },
-            metadataConf: { timeout: 1 },
           },
         }),
       ],
@@ -41,7 +40,6 @@ describe("App doesn't start if the consumer can't connect and autoConnect=true",
               "group.id": "group.id",
               "metadata.broker.list": "127.0.0.1:9999",
             },
-            metadataConf: { timeout: 1 },
           },
         }),
       ],
@@ -53,7 +51,7 @@ describe("App doesn't start if the consumer can't connect and autoConnect=true",
       await app.init();
     };
 
-    await expect(fn()).rejects.toThrow("broker transport failure");
+    await expect(fn()).rejects.toThrow("Local: Broker transport failure");
   });
 });
 
@@ -77,19 +75,11 @@ describe("App fail fast if the consumer can't connect, autoConnect=false and tim
       const app = moduleFixture.createNestApplication();
       await app.init();
 
-      const consumer = app.get(KafkaConsumer);
+      const consumer: KafkaJS.Consumer = app.get(KAFKA_CONSUMER);
 
-      await new Promise<void>((resolve, reject) => {
-        consumer.connect({ timeout: 1 }, (err) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve();
-          }
-        });
-      });
+      await consumer.connect();
     };
 
-    await expect(fn()).rejects.toThrow("broker transport failure");
+    await expect(fn()).rejects.toThrow("Local: Broker transport failure");
   });
 });

@@ -1,8 +1,4 @@
-import {
-  IAdminClient,
-  KafkaConsumer,
-  Producer,
-} from "@confluentinc/kafka-javascript";
+import { KafkaJS } from "@confluentinc/kafka-javascript";
 import { DynamicModule, Provider } from "@nestjs/common";
 import {
   KafkaConnectionAsyncOptions,
@@ -11,6 +7,8 @@ import {
 import {
   KAFKA_ADMIN_CLIENT_PROVIDER,
   KAFKA_CONFIGURATION_PROVIDER,
+  KAFKA_CONSUMER,
+  KAFKA_PRODUCER,
   getAsyncKafkaConnectionProvider,
   getKafkaConnectionProviderList,
 } from "./providers/kafka.connection";
@@ -20,17 +18,17 @@ const getKafkaLifecycleMangerProvider = (): Provider => {
   return {
     provide: KafkaLifecycleManager,
     useFactory: (
-      adminClient: IAdminClient,
-      producer: Producer,
-      consumer: KafkaConsumer,
+      admin: KafkaJS.Admin,
+      producer: KafkaJS.Producer,
+      consumer: KafkaJS.Consumer,
       config: KafkaConnectionOptions
     ): KafkaLifecycleManager => {
-      return new KafkaLifecycleManager(config, producer, consumer, adminClient);
+      return new KafkaLifecycleManager(config, producer, consumer, admin);
     },
     inject: [
       KAFKA_ADMIN_CLIENT_PROVIDER,
-      Producer,
-      KafkaConsumer,
+      KAFKA_PRODUCER,
+      KAFKA_CONSUMER,
       KAFKA_CONFIGURATION_PROVIDER,
     ],
   };

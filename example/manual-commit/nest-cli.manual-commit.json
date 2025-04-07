@@ -1,0 +1,5 @@
+{
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "example/manual-commit",
+  "entryFile": "example/manual-commit/manual-commit"
+}

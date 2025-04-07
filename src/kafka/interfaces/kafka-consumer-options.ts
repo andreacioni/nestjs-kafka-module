@@ -1,8 +1,6 @@
-import * as rdkafka from "@confluentinc/kafka-javascript";
+import { KafkaJS } from "@confluentinc/kafka-javascript";
 
 export interface KafkaConsumerOptions {
-  conf: rdkafka.ConsumerGlobalConfig;
-  topicConf?: rdkafka.ConsumerTopicConfig;
-  metadataConf?: rdkafka.MetadataOptions;
+  conf: KafkaJS.ConsumerConstructorConfig;
   autoConnect?: boolean;
 }

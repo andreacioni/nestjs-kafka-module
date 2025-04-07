@@ -1,5 +1,5 @@
-import * as rdkafka from "@confluentinc/kafka-javascript";
-import {SchemaRegistryClient} from "@confluentinc/schemaregistry";
+import { AdminClient, KafkaJS } from "@confluentinc/kafka-javascript";
+import { SchemaRegistryClient } from "@confluentinc/schemaregistry";
 import { Provider } from "@nestjs/common";
 import { KafkaAdminClientOptions } from "../interfaces/kafka-admin-client-options";
 import {
@@ -10,29 +10,28 @@ import { KafkaConsumerOptions } from "../interfaces/kafka-consumer-options";
 import { KafkaProducerOptions } from "../interfaces/kafka-producer-options";
 import { KafkaSchemaRegistryClientOptions } from "../interfaces/kafka-schema-registry-options";
 
-export const KAFKA_ADMIN_CLIENT_PROVIDER = " KAFKA_ADMIN_CLIENT";
-export const KAFKA_CONFIGURATION_PROVIDER = " KAFKA_CONFIGURATION";
+export const KAFKA_ADMIN_CLIENT_PROVIDER = "KAFKA_ADMIN_CLIENT";
+export const KAFKA_PRODUCER = "KAFKA_PRODUCER";
+export const KAFKA_CONSUMER = "KAFKA_CONSUMER";
+export const KAFKA_CONFIGURATION_PROVIDER = "KAFKA_CONFIGURATION";
 
 export function createConsumer(
-  options: KafkaConsumerOptions
-): rdkafka.KafkaConsumer {
-  const consumer = new rdkafka.KafkaConsumer(
-    options.conf,
-    options.topicConf ?? {}
-  );
+  consumerOptions: KafkaConsumerOptions
+): KafkaJS.Consumer {
+  const consumer = new KafkaJS.Kafka({}).consumer(consumerOptions.conf);
 
   return consumer;
 }
 
-function createProducer(options: KafkaProducerOptions): rdkafka.Producer {
-  const producer = new rdkafka.Producer(options.conf, options.topicConf);
+function createProducer(
+  producerOptions: KafkaProducerOptions
+): KafkaJS.Producer {
+  const producer = new KafkaJS.Kafka({}).producer(producerOptions.conf);
   return producer;
 }
 
-function createAdminClient(
-  options: KafkaAdminClientOptions
-): rdkafka.IAdminClient {
-  return rdkafka.AdminClient.create(options.conf);
+function createAdminClient(options: KafkaAdminClientOptions): KafkaJS.Admin {
+  return new KafkaJS.Kafka({}).admin(options.conf);
 }
 
 function createSchemaRegistry(
@@ -44,11 +43,11 @@ function createSchemaRegistry(
 export function getKafkaConnectionProviderList(
   options: KafkaConnectionOptions
 ): Provider[] {
-  const adminClient: rdkafka.IAdminClient | undefined =
+  const adminClient: AdminClient | undefined =
     options.adminClient && createAdminClient(options.adminClient);
-  const consumer: rdkafka.KafkaConsumer | undefined =
+  const consumer: KafkaJS.Consumer | undefined =
     options.consumer && createConsumer(options.consumer);
-  const producer: rdkafka.Producer | undefined =
+  const producer: KafkaJS.Producer | undefined =
     options.producer && createProducer(options.producer);
   const schemaRegistry: SchemaRegistryClient | undefined =
     options.schemaRegistry && createSchemaRegistry(options.schemaRegistry);
@@ -56,8 +55,8 @@ export function getKafkaConnectionProviderList(
   return [
     { provide: KAFKA_CONFIGURATION_PROVIDER, useValue: options },
     { provide: KAFKA_ADMIN_CLIENT_PROVIDER, useValue: adminClient },
-    { provide: rdkafka.KafkaConsumer, useValue: consumer },
-    { provide: rdkafka.Producer, useValue: producer },
+    { provide: KAFKA_CONSUMER, useValue: consumer },
+    { provide: KAFKA_PRODUCER, useValue: producer },
     { provide: SchemaRegistryClient, useValue: schemaRegistry },
   ];
 }
@@ -71,7 +70,7 @@ export function getAsyncKafkaConnectionProvider(
       inject: options.inject,
       useFactory: async (
         ...args: any[]
-      ): Promise<rdkafka.IAdminClient | undefined> => {
+      ): Promise<KafkaJS.Admin | undefined> => {
         const connectionOptions = await options.useFactory(...args);
 
         return (
@@ -81,11 +80,11 @@ export function getAsyncKafkaConnectionProvider(
       },
     },
     {
-      provide: rdkafka.KafkaConsumer,
+      provide: KAFKA_CONSUMER,
       inject: options.inject,
       useFactory: async (
         ...args: any[]
-      ): Promise<rdkafka.KafkaConsumer | undefined> => {
+      ): Promise<KafkaJS.Consumer | undefined> => {
         const connectionOptions = await options.useFactory(...args);
 
         return (
@@ -95,11 +94,11 @@ export function getAsyncKafkaConnectionProvider(
       },
     },
     {
-      provide: rdkafka.Producer,
+      provide: KAFKA_PRODUCER,
       inject: options.inject,
       useFactory: async (
         ...args: any[]
-      ): Promise<rdkafka.Producer | undefined> => {
+      ): Promise<KafkaJS.Producer | undefined> => {
         const connectionOptions = await options.useFactory(...args);
 
         return (
@@ -121,6 +120,6 @@ export function getAsyncKafkaConnectionProvider(
           createSchemaRegistry(connectionOptions.schemaRegistry)
         );
       },
-    }
+    },
   ];
 }

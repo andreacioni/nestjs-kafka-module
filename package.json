@@ -18,7 +18,8 @@
     "prepare": "husky",
     "commit": "git cz",
     "prettier": "prettier --write .",
-    "start:example": "nest start -c example/nest-cli.standalone.json"
+    "example:standalone": "nest start -c example/standalone/nest-cli.standalone.json",
+    "example:manual-commit": "nest start -c example/manual-commit/nest-cli.manual-commit.json"
   },
   "repository": {
     "type": "git",
@@ -37,6 +38,7 @@
     "@nestjs/config": "^4.0.1",
     "@nestjs/core": "11.0.11",
     "@nestjs/platform-express": "11.0.11",
+    "@nestjs/terminus": "^11.0.0",
     "@nestjs/testing": "11.0.11",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.0",
@@ -62,7 +64,7 @@
     "semantic-release": "^24.0.0",
     "testcontainers": "^10.7.1",
     "ts-jest": "29.2.6",
-    "typescript": "5.5.2"
+    "typescript": "^5.7.3"
   },
   "jest": {
     "moduleFileExtensions": [
@@ -115,7 +117,8 @@
     }
   },
   "dependencies": {
-    "@confluentinc/kafka-javascript": "^1.2.0"
+    "@confluentinc/kafka-javascript": "^1.2.0",
+    "@confluentinc/schemaregistry": "^1.1.0"
   },
   "husky": {
     "hooks": {

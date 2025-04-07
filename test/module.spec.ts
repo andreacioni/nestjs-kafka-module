@@ -1,50 +1,31 @@
-import {
-  IAdminClient,
-  KafkaConsumer,
-  Metadata,
-  Producer,
-} from "@confluentinc/kafka-javascript";
+import { KafkaJS } from "@confluentinc/kafka-javascript";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { NestApplication } from "@nestjs/core";
 import { Test } from "@nestjs/testing";
-import { setTimeout } from "node:timers/promises";
+import { setTimeout as timeout } from "node:timers/promises";
 import { StartedDockerComposeEnvironment } from "testcontainers";
 import { KafkaModule } from "../src";
-import { KAFKA_ADMIN_CLIENT_PROVIDER } from "../src/kafka/providers/kafka.connection";
 import {
-  consumerConnect,
-  consumerDisconnect,
-  producerConnect,
-  producerDisconnect,
-} from "../src/kafka/utils/kafka.utils";
+  KAFKA_ADMIN_CLIENT_PROVIDER,
+  KAFKA_CONSUMER,
+  KAFKA_PRODUCER,
+} from "../src/kafka/providers/kafka.connection";
 import { startTestCompose, stopTestCompose } from "./testcontainers-utils";
-import { promisify } from "util";
 
-const createTopic = async (admin: IAdminClient) => {
-  await new Promise<void>((resolve, reject) => {
-    admin.createTopic(
-      { num_partitions: 1, replication_factor: 1, topic: "test_topic" },
-      (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      }
-    );
+const createTopic = async (admin: KafkaJS.Admin) => {
+  await admin.createTopics({
+    topics: [
+      {
+        numPartitions: 1,
+        replicationFactor: 1,
+        topic: "test_topic",
+      },
+    ],
   });
 };
 
-const deleteTopic = async (admin: IAdminClient) => {
-  await new Promise<void>((resolve, reject) => {
-    admin.deleteTopic("test_topic", (err) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
+const deleteTopic = async (admin: KafkaJS.Admin) => {
+  await admin.deleteTopics({ topics: ["test_topic"] });
 };
 
 describe("App consuming KafkaModule build with forRootAsync", () => {
@@ -97,18 +78,17 @@ describe("App consuming KafkaModule build with forRootAsync", () => {
 
   afterAll(async () => {
     await app?.close();
-    //await app?.get(KafkaService).disconnect();
     await stopTestCompose(startedContainer);
   });
 
   it("should mock app defined", async () => {
     expect(app).toBeDefined();
   });
-}); 
+});
 
 describe("App produce and consume message asynchronously", () => {
   let app: NestApplication;
-  let admin: IAdminClient;
+  let admin: KafkaJS.Admin;
   let startedContainer: StartedDockerComposeEnvironment;
 
   beforeAll(async () => {
@@ -139,44 +119,48 @@ describe("App produce and consume message asynchronously", () => {
 
   afterAll(async () => {
     await app?.close();
-    //await deleteTopic(admin);
     await stopTestCompose(startedContainer);
   });
 
   it("should produce and consume 2 messages (asynchronously)", async () => {
     expect(app).toBeDefined();
 
-    const consumer = app.get(KafkaConsumer);
-    const producer = app.get(Producer);
-
-    expect(consumer.isConnected()).toBe(true);
-    expect(producer.isConnected()).toBe(true);
+    const consumer: KafkaJS.Consumer = app.get(KAFKA_CONSUMER);
+    const producer: KafkaJS.Producer = app.get(KAFKA_PRODUCER);
 
     const consumerFn = jest.fn();
 
-    consumer.on("data", consumerFn);
-    consumer.subscribe(["test_topic"]);
-    consumer.consume();
+    await consumer.subscribe({ topics: ["test_topic"] });
+    consumer.seek({ topic: "test_topic", partition: 0, offset: "0" });
+    consumer.run({
+      eachMessage: async ({ message }) => {
+        consumerFn(message);
+      },
+    });
 
     //await internal consumer thread to spawn
     //this delay ensures that the consumer is going read from offset 0
-    await setTimeout(1000);
+    await timeout(1000);
 
-    producer.produce("test_topic", null, Buffer.from("Hello"));
-    producer.produce("test_topic", null, Buffer.from("Goodbye"));
-    producer.flush();
+    await producer.send({
+      topic: "test_topic",
+      messages: [{ value: "Hello" }],
+    });
+    await producer.send({
+      topic: "test_topic",
+      messages: [{ value: "Goodbye" }],
+    });
+    await producer.flush();
 
-    await setTimeout(1000);
+    await timeout(5000);
 
     expect(consumerFn).toHaveBeenCalledTimes(2);
-
-    consumer.unsubscribe();
   });
 });
 
 describe("App produce and consume message synchronously", () => {
   let app: NestApplication;
-  let admin: IAdminClient;
+  let admin: KafkaJS.Admin;
   let startedContainer: StartedDockerComposeEnvironment;
 
   beforeAll(async () => {
@@ -217,65 +201,51 @@ describe("App produce and consume message synchronously", () => {
   it("should produce and consume 2 messages (synchronously)", async () => {
     expect(app).toBeDefined();
 
-    const consumer = app.get(KafkaConsumer);
-    const producer = app.get(Producer);
+    const consumer: KafkaJS.Consumer = app.get(KAFKA_CONSUMER);
+    const producer: KafkaJS.Producer = app.get(KAFKA_PRODUCER);
 
-    expect(consumer.isConnected()).toBe(true);
-    expect(producer.isConnected()).toBe(true);
     expect(admin).toBeDefined();
 
     const consumerFn = jest.fn();
 
-    consumer.subscribe(["test_topic"]);
-
-    //consume 0 messages to ensure that the consumer is going read from offset 0
-    await new Promise<void>((resolve, reject) => {
-      consumer.consume(1, (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
+    await producer.send({
+      topic: "test_topic",
+      messages: [{ value: "Hello" }],
+    });
+    await producer.send({
+      topic: "test_topic",
+      messages: [{ value: "Goodbye" }],
     });
 
-    producer.produce("test_topic", null, Buffer.from("Hello"));
-    producer.produce("test_topic", null, Buffer.from("Goodbye"));
+    await producer.flush({ timeout: 2000 });
+    await consumer.subscribe({ topics: ["test_topic"] });
+    consumer.seek({ topic: "test_topic", partition: 0, offset: "0" });
+    await new Promise<void>((resolve) => {
+      let count = 0;
+      const timeoutId = setTimeout(() => {
+        resolve(); // Resolve the promise after 5 seconds if not already resolved
+      }, 5000);
 
-    await new Promise<void>((resolve, reject) => {
-      producer.flush(2000, (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
-    });
-
-    await new Promise<void>((resolve, reject) => {
-      consumer.consume(2, async (err, msg) => {
-        if (err) {
-          reject(err);
-        } else {
-          for (const m of msg) {
-            consumerFn(m);
+      consumer.run({
+        eachMessage: async ({ message }) => {
+          if (count++ === 2) {
+            clearTimeout(timeoutId);
+            resolve();
           }
-          resolve();
-        }
+          consumerFn(message);
+        },
       });
     });
 
     expect(consumerFn).toHaveBeenCalledTimes(2);
-
-    consumer.unsubscribe();
   });
 });
 
 describe("App produce and consume message with auto connect disabled", () => {
   let app: NestApplication;
-  let admin: IAdminClient;
-  let consumer: KafkaConsumer;
-  let producer: Producer;
+  let admin: KafkaJS.Admin;
+  let consumer: KafkaJS.Consumer;
+  let producer: KafkaJS.Producer;
 
   let startedContainer: StartedDockerComposeEnvironment;
 
@@ -308,19 +278,20 @@ describe("App produce and consume message with auto connect disabled", () => {
     await app.init();
 
     admin = app.get(KAFKA_ADMIN_CLIENT_PROVIDER);
-    consumer = app.get(KafkaConsumer);
-    producer = app.get(Producer);
+    consumer = app.get(KAFKA_CONSUMER);
+    producer = app.get(KAFKA_PRODUCER);
 
-    await producerConnect(producer);
-    await consumerConnect(consumer);
+    await producer.connect();
+    await consumer.connect();
 
     await createTopic(admin);
   });
 
   afterAll(async () => {
     try {
-      await producerDisconnect(producer);
-      await consumerDisconnect(consumer);
+      await producer.flush();
+      await producer.disconnect();
+      await consumer.disconnect();
       await deleteTopic(admin);
       admin.disconnect();
     } finally {
@@ -331,63 +302,40 @@ describe("App produce and consume message with auto connect disabled", () => {
   it("should produce and consume 2 messages, auto connect = false", async () => {
     expect(app).toBeDefined();
 
-    expect(consumer.isConnected()).toBe(true);
-    expect(producer.isConnected()).toBe(true);
     expect(admin).toBeDefined();
 
     const consumerFn = jest.fn();
 
-    consumer.subscribe(["test_topic"]);
-
-    //consume 0 messages to ensure that the consumer is going read from offset 0
-    await new Promise<void>((resolve, reject) => {
-      consumer.consume(1, (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
+    await consumer.subscribe({ topics: ["test_topic"] });
+    consumer.seek({ topic: "test_topic", partition: 0, offset: "0" });
+    await consumer.run({
+      eachMessage: async ({ message }) => {
+        consumerFn(message);
+      },
     });
 
-    producer.produce("test_topic", null, Buffer.from("Hello"));
-    producer.produce("test_topic", null, Buffer.from("Goodbye"));
-
-    await new Promise<void>((resolve, reject) => {
-      producer.flush(2000, (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
+    await producer.send({
+      topic: "test_topic",
+      messages: [{ value: "Hello" }],
     });
-
-    await new Promise<void>((resolve, reject) => {
-      consumer.consume(2, async (err, msg) => {
-        if (err) {
-          reject(err);
-        } else {
-          for (const m of msg) {
-            consumerFn(m);
-          }
-          resolve();
-        }
-      });
+    await producer.send({
+      topic: "test_topic",
+      messages: [{ value: "Goodbye" }],
     });
+    await producer.flush({ timeout: 2000 });
+
+    await timeout(5000);
 
     expect(consumerFn).toHaveBeenCalledTimes(2);
-    
-    consumer.unsubscribe();
   });
 });
 
-describe("Test call getMetadata on consumer and producer", () => {
+describe("Test call getMetadata", () => {
   let app: NestApplication;
-  let consumer: KafkaConsumer;
-  let producer: Producer;
-  let getConsumerMetadata: () => Promise<Metadata>;
-  let getProducerMetadata: () => Promise<Metadata>;
+  let consumer: KafkaJS.Consumer;
+  let admin: KafkaJS.Admin;
+  let producer: KafkaJS.Producer;
+  let getMetadata: () => Promise<{ topics: KafkaJS.ITopicMetadata[] }>;
 
   let startedContainer: StartedDockerComposeEnvironment;
 
@@ -411,6 +359,11 @@ describe("Test call getMetadata on consumer and producer", () => {
               "metadata.broker.list": "localhost:9092",
             },
           },
+          adminClient: {
+            conf: {
+              "bootstrap.servers": "localhost:9092",
+            },
+          },
         }),
       ],
     }).compile();
@@ -418,42 +371,23 @@ describe("Test call getMetadata on consumer and producer", () => {
     app = moduleFixture.createNestApplication();
     await app.init();
 
-    consumer = app.get(KafkaConsumer);
-    producer = app.get(Producer);
+    consumer = app.get(KAFKA_CONSUMER);
+    producer = app.get(KAFKA_PRODUCER);
+    admin = app.get(KAFKA_ADMIN_CLIENT_PROVIDER);
 
-    await producerConnect(producer);
-    await consumerConnect(consumer);
+    await producer.connect();
+    await consumer.connect();
 
-    getConsumerMetadata = async () => {
-      return new Promise<Metadata>((resolve, reject) => {
-        consumer.getMetadata({timeout: 1000}, (err, metadata) => {
-          if (err) {
-            reject(err);
-          } else {
-            //console.log(metadata);
-            resolve(metadata);
-          }
-        });
-      }
-    )};
-
-    getProducerMetadata = async () => {
-      return new Promise<Metadata>((resolve, reject) => {
-        producer.getMetadata({timeout: 1000}, (err, metadata) => {
-          if (err) {
-            reject(err);
-          } else {          
-            resolve(metadata);
-          }
-        });
-      }
-    )};
+    getMetadata = async () => {
+      return await admin.fetchTopicMetadata({ timeout: 1000 });
+    };
   });
 
   afterEach(async () => {
     try {
-      await producerDisconnect(producer);
-      await consumerDisconnect(consumer);
+      await producer.flush();
+      await producer.disconnect();
+      await consumer.disconnect();
     } finally {
       await stopTestCompose(startedContainer);
     }
@@ -462,62 +396,40 @@ describe("Test call getMetadata on consumer and producer", () => {
   it("get metadata not throw anything when connected", async () => {
     expect(app).toBeDefined();
 
-    expect(consumer.isConnected()).toBe(true);
-    expect(producer.isConnected()).toBe(true);
-    
-    await expect(async () => getConsumerMetadata()).not.toThrow();
-    await expect(async () => getProducerMetadata()).not.toThrow();
+    await expect(async () => getMetadata()).not.toThrow();
   });
 
-  it("get metadata throw error when consumer is not connected (client calls disconnect)", async () => {
+  it("get metadata not throw when consumer is not connected (client calls disconnect)", async () => {
     expect(app).toBeDefined();
 
-    expect(consumer.isConnected()).toBe(true);
-    expect(producer.isConnected()).toBe(true);
+    await expect(getMetadata()).resolves.toBeDefined();
 
-    await expect(getConsumerMetadata()).resolves.toBeDefined();
+    await consumer.disconnect();
 
-    await consumerDisconnect(consumer)
-
-    await expect(getConsumerMetadata()).rejects.toThrow("Client is disconnected");
+    await expect(getMetadata()).resolves.toBeDefined();
   });
 
-  it("get metadata throw error when consumer is not connected (broker fails)", async () => {
+  it("get metadata not throw when admin is not connected (client calls disconnect)", async () => {
     expect(app).toBeDefined();
 
-    expect(consumer.isConnected()).toBe(true);
-    expect(producer.isConnected()).toBe(true);
+    await expect(getMetadata()).resolves.toBeDefined();
 
-    await expect(getConsumerMetadata()).resolves.toBeDefined();
+    await admin.disconnect();
+
+    await expect(getMetadata()).rejects.toThrow(
+      "Admin client is not connected"
+    );
+  });
+
+  it("get metadata not throw error when admins is not connected (broker fails)", async () => {
+    expect(app).toBeDefined();
+
+    await expect(getMetadata()).resolves.toBeDefined();
 
     await stopTestCompose(startedContainer);
 
-    await expect(getConsumerMetadata()).rejects.toThrow("Local: Broker transport failure");
-  });
-
-  it("get metadata throw error when producer is not connected (client calls disconnect)", async () => {
-    expect(app).toBeDefined();
-
-    expect(consumer.isConnected()).toBe(true);
-    expect(producer.isConnected()).toBe(true);
-
-    await expect(getProducerMetadata()).resolves.toBeDefined();
-
-    await producerDisconnect(producer)
-
-    await expect(getProducerMetadata()).rejects.toThrow("Client is disconnected");
-  });
-
-  it("get metadata throw error when producer is not connected (broker fails)", async () => {
-    expect(app).toBeDefined();
-
-    expect(consumer.isConnected()).toBe(true);
-    expect(producer.isConnected()).toBe(true);
-
-    await expect(getProducerMetadata()).resolves.toBeDefined();
-
-    await stopTestCompose(startedContainer);
-
-    await expect(getProducerMetadata()).rejects.toThrow("Local: Broker transport failure");
+    await expect(getMetadata()).rejects.toThrow(
+      "Local: Broker transport failure"
+    );
   });
 });

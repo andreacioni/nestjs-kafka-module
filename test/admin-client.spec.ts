@@ -1,4 +1,4 @@
-import { IAdminClient, NewTopic } from "@confluentinc/kafka-javascript";
+import { KafkaJS, NewTopic } from "@confluentinc/kafka-javascript";
 import { NestApplication } from "@nestjs/core";
 import { Test } from "@nestjs/testing";
 import { StartedDockerComposeEnvironment } from "testcontainers";
@@ -57,33 +57,19 @@ describe("Test admin client instance", () => {
 
   it("should create and delete a topic", async () => {
     expect(app).toBeDefined();
-    const adminClient: IAdminClient = app.get(KAFKA_ADMIN_CLIENT_PROVIDER);
+    const adminClient: KafkaJS.Admin = app.get(KAFKA_ADMIN_CLIENT_PROVIDER);
     const newTopic: NewTopic = {
       topic: "new_topic",
       num_partitions: 1,
       replication_factor: 1,
     };
 
-    const createPromise = new Promise<void>((resolve, reject) => {
-      adminClient.createTopic(newTopic, (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
-    });
+    const createPromise = adminClient.createTopics({ topics: [newTopic] });
 
     await expect(createPromise).resolves.not.toThrow();
 
-    const deletePromise = new Promise<void>((resolve, reject) => {
-      adminClient.deleteTopic("new_topic", (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
+    const deletePromise = adminClient.deleteTopics({
+      topics: [newTopic.topic],
     });
 
     await expect(deletePromise).resolves.not.toThrow();
@@ -92,17 +78,9 @@ describe("Test admin client instance", () => {
   it("should fail to delete topic if it is not defined ", async () => {
     expect(app).toBeDefined();
 
-    const adminClient: IAdminClient = app.get(KAFKA_ADMIN_CLIENT_PROVIDER);
+    const adminClient: KafkaJS.Admin = app.get(KAFKA_ADMIN_CLIENT_PROVIDER);
 
-    const deletePromise = new Promise<void>((resolve, reject) => {
-      adminClient.deleteTopic("new_topic", (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
-    });
+    const deletePromise = adminClient.deleteTopics({ topics: ["new_topic"] });
 
     await expect(deletePromise).rejects.toThrow(
       "Broker: Unknown topic or partition"

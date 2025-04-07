@@ -9,6 +9,7 @@
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "strictBuiltinIteratorReturn": false,
     "target": "es2017",
     "sourceMap": true,
     "outDir": "dist",
@@ -17,8 +18,10 @@
     "tsBuildInfoFile": ".tsbuildinfo",
     "esModuleInterop": true,
     "lib": ["esnext"],
-    
+    "typeRoots": [
+      "./node_modules/@confluentinc/kafka-javascript/types/*",
+      "./node_modules/@types"
+    ]
   },
-  "exclude": ["node_modules", "dist", "build", "canary", "test", "example"],
-  
+  "exclude": ["node_modules", "dist", "build", "canary", "test", "example"]
 }

@@ -6,8 +6,8 @@ import {
 } from "@confluentinc/kafka-javascript";
 import { Inject, Module, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
-import { KafkaModule } from "../src/kafka/kafka.module";
-import { KAFKA_ADMIN_CLIENT_PROVIDER } from "../src/kafka/providers/kafka.connection";
+import { KafkaModule } from "../../src/kafka/kafka.module";
+import { KAFKA_ADMIN_CLIENT_PROVIDER } from "../../src/kafka/providers/kafka.connection";
 
 import { promisify } from "node:util";
 
@@ -23,6 +23,8 @@ class AppService implements OnModuleDestroy, OnModuleInit {
 
   private consume(message: Message): void {
     console.log("message received: %s", message.value);
+    this.consumer.commitMessage(message);
+    console.log("message committed: %s", message.value);
   }
 
   private produce(): void {
@@ -38,6 +40,18 @@ class AppService implements OnModuleDestroy, OnModuleInit {
     this.consumer.consume();
 
     //PRODUCE
+    this.producer.on("event.error", (err) => {
+      console.error("producer error: %s", err);
+    });
+    this.producer.on("ready", (err) => {
+      console.log("producer ready: %s", err);
+    });
+    this.producer.on("delivery-report", (err, report) => {
+      if (err) {
+        console.error("failed to deliver message: %s", err);
+      }
+      console.log("message delivered: %s", report?.value?.toString());
+    });
     this.interval = setInterval(this.produce.bind(this), 1000);
   }
 
@@ -58,11 +72,18 @@ class AppService implements OnModuleDestroy, OnModuleInit {
     KafkaModule.forRoot({
       consumer: {
         conf: {
+          "bootstrap.servers": "localhost:9092",
           "group.id": "nestjs-rdkafka-test",
-          "metadata.broker.list": "127.0.0.1:9092",
+          "enable.auto.commit": false,
         },
       },
-      producer: { conf: { "metadata.broker.list": "127.0.0.1:9092" } },
+      producer: {
+        conf: {
+          "bootstrap.servers": "localhost:9092",
+          "enable.idempotence": true,
+          "queue.buffering.max.messages": 10,
+        },
+      },
       adminClient: { conf: { "metadata.broker.list": "127.0.0.1:9092" } },
     }),
   ],

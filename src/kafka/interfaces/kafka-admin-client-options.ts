@@ -1,5 +1,6 @@
-import * as rdkafka from "@confluentinc/kafka-javascript";
+import { KafkaJS } from "@confluentinc/kafka-javascript";
 
 export interface KafkaAdminClientOptions {
-  conf: rdkafka.GlobalConfig;
+  autoConnect?: boolean;
+  conf: KafkaJS.AdminConstructorConfig;
 }
