@@ -56,6 +56,8 @@ services:
     image: confluentinc/cp-schema-registry:7.9.0
     hostname: schema-registry
     container_name: schema-registry
+    profiles:
+      - schema-registry
     depends_on:
       - kafka
     ports:

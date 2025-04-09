@@ -10,7 +10,7 @@ describe("AVRO message produce and consume", () => {
   let startedContainer: StartedDockerComposeEnvironment;
 
   beforeAll(async () => {
-    startedContainer = await startTestCompose();
+    startedContainer = await startTestCompose("schema-registry");
 
     const moduleFixture = await Test.createTestingModule({
       imports: [

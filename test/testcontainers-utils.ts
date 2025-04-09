@@ -5,15 +5,17 @@ import {
   StartedTestContainer,
 } from "testcontainers";
 
-export const startTestCompose =
-  async (): Promise<StartedDockerComposeEnvironment> => {
-    const environment = new DockerComposeEnvironment(".", "docker-compose.yml");
-    const ret = await environment.up();
-    return ret;
-  };
+export const startTestCompose = async (
+  ...profiles: string[]
+): Promise<StartedDockerComposeEnvironment> => {
+  const environment = new DockerComposeEnvironment(".", "docker-compose.yml");
+  environment.withProfiles(...profiles);
+  const ret = await environment.up();
+  return ret;
+};
 
 export const stopTestCompose = async (
-  startedContainer: StartedDockerComposeEnvironment,
+  startedContainer: StartedDockerComposeEnvironment
 ): Promise<void> => {
   await startedContainer.down();
 };
@@ -45,7 +47,7 @@ export const startTestContainer = async (): Promise<StartedTestContainer> => {
 };
 
 export const stopTestContainer = async (
-  startedContainer: StartedTestContainer,
+  startedContainer: StartedTestContainer
 ): Promise<void> => {
   await startedContainer.stop();
 };
