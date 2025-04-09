@@ -378,8 +378,20 @@ describe("Test call getMetadata", () => {
     await producer.connect();
     await consumer.connect();
 
+    await admin.createTopics({
+      topics: [
+        {
+          numPartitions: 1,
+          replicationFactor: 1,
+          topic: "test_topic",
+        },
+      ],
+    });
+
     getMetadata = async () => {
-      return await admin.fetchTopicMetadata({ timeout: 1000 });
+      return await admin.fetchTopicMetadata({
+        timeout: 1000,
+      });
     };
   });
 
@@ -471,6 +483,16 @@ describe("Test call getMetadata when the broker has crashed", () => {
 
     await producer.connect();
     await consumer.connect();
+
+    await admin.createTopics({
+      topics: [
+        {
+          numPartitions: 1,
+          replicationFactor: 1,
+          topic: "test_topic",
+        },
+      ],
+    });
 
     getMetadata = async () => {
       return await admin.fetchTopicMetadata({ timeout: 1000 });

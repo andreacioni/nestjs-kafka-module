@@ -15,7 +15,7 @@ describe("Schema registry connection and schema download", () => {
   let startedContainer: StartedDockerComposeEnvironment;
 
   beforeAll(async () => {
-    startedContainer = await startTestCompose();
+    startedContainer = await startTestCompose("schema-registry");
 
     const moduleFixture = await Test.createTestingModule({
       imports: [

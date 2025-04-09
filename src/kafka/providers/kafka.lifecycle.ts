@@ -21,11 +21,17 @@ export default class KafkaLifecycleManager
   ) {}
 
   async beforeApplicationShutdown() {
-    if (
-      (this.config?.producer?.autoConnect ?? true) &&
-      this.producer &&
-      this.producer.isActive()
-    ) {
+    if ((this.config?.consumer?.autoConnect ?? true) && this.consumer) {
+      try {
+        debugLog("Consumer disconnecting");
+        await this.consumer.disconnect();
+        debugLog("Consumer disconnected successfully.");
+      } catch (e) {
+        console.error("failed to disconnect consumer: %s", e);
+      }
+    }
+
+    if ((this.config?.producer?.autoConnect ?? true) && this.producer) {
       try {
         debugLog("Producer disconnecting");
         await this.producer.flush();
@@ -36,13 +42,13 @@ export default class KafkaLifecycleManager
       }
     }
 
-    if ((this.config?.consumer?.autoConnect ?? true) && this.consumer) {
+    if ((this.config.adminClient?.autoConnect ?? true) && this.admin) {
       try {
-        debugLog("Consumer disconnecting");
-        await this.consumer.disconnect();
-        debugLog("Consumer disconnected successfully.");
+        debugLog("Admin client disconnecting");
+        await this.admin.disconnect();
+        debugLog("Admin client disconnected successfully.");
       } catch (e) {
-        console.error("failed to disconnect consumer: %s", e);
+        console.error("failed to disconnect admin client: %s", e);
       }
     }
   }
