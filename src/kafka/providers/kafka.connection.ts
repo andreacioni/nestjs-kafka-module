@@ -11,8 +11,8 @@ import { KafkaProducerOptions } from "../interfaces/kafka-producer-options";
 import { KafkaSchemaRegistryClientOptions } from "../interfaces/kafka-schema-registry-options";
 
 export const KAFKA_ADMIN_CLIENT_PROVIDER = "KAFKA_ADMIN_CLIENT";
-export const KAFKA_PRODUCER = "KAFKA_PRODUCER";
-export const KAFKA_CONSUMER = "KAFKA_CONSUMER";
+export const KAFKA_PRODUCER_PROVIDER = "KAFKA_PRODUCER";
+export const KAFKA_CONSUMER_PROVIDER = "KAFKA_CONSUMER";
 export const KAFKA_CONFIGURATION_PROVIDER = "KAFKA_CONFIGURATION";
 
 export function createConsumer(
@@ -55,8 +55,8 @@ export function getKafkaConnectionProviderList(
   return [
     { provide: KAFKA_CONFIGURATION_PROVIDER, useValue: options },
     { provide: KAFKA_ADMIN_CLIENT_PROVIDER, useValue: adminClient },
-    { provide: KAFKA_CONSUMER, useValue: consumer },
-    { provide: KAFKA_PRODUCER, useValue: producer },
+    { provide: KAFKA_CONSUMER_PROVIDER, useValue: consumer },
+    { provide: KAFKA_PRODUCER_PROVIDER, useValue: producer },
     { provide: SchemaRegistryClient, useValue: schemaRegistry },
   ];
 }
@@ -80,7 +80,7 @@ export function getAsyncKafkaConnectionProvider(
       },
     },
     {
-      provide: KAFKA_CONSUMER,
+      provide: KAFKA_CONSUMER_PROVIDER,
       inject: options.inject,
       useFactory: async (
         ...args: any[]
@@ -94,7 +94,7 @@ export function getAsyncKafkaConnectionProvider(
       },
     },
     {
-      provide: KAFKA_PRODUCER,
+      provide: KAFKA_PRODUCER_PROVIDER,
       inject: options.inject,
       useFactory: async (
         ...args: any[]

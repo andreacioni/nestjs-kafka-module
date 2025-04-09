@@ -7,8 +7,8 @@ import {
 import {
   KAFKA_ADMIN_CLIENT_PROVIDER,
   KAFKA_CONFIGURATION_PROVIDER,
-  KAFKA_CONSUMER,
-  KAFKA_PRODUCER,
+  KAFKA_CONSUMER_PROVIDER,
+  KAFKA_PRODUCER_PROVIDER,
   getAsyncKafkaConnectionProvider,
   getKafkaConnectionProviderList,
 } from "./providers/kafka.connection";
@@ -27,8 +27,8 @@ const getKafkaLifecycleMangerProvider = (): Provider => {
     },
     inject: [
       KAFKA_ADMIN_CLIENT_PROVIDER,
-      KAFKA_PRODUCER,
-      KAFKA_CONSUMER,
+      KAFKA_PRODUCER_PROVIDER,
+      KAFKA_CONSUMER_PROVIDER,
       KAFKA_CONFIGURATION_PROVIDER,
     ],
   };

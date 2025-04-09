@@ -19,7 +19,8 @@
     "commit": "git cz",
     "prettier": "prettier --write .",
     "example:standalone": "nest start -c example/standalone/nest-cli.standalone.json",
-    "example:manual-commit": "nest start -c example/manual-commit/nest-cli.manual-commit.json"
+    "example:manual-commit": "nest start -c example/manual-commit/nest-cli.manual-commit.json",
+    "example:healthcheck": "nest start -c example/healthcheck/nest-cli.healthcheck.json"
   },
   "repository": {
     "type": "git",

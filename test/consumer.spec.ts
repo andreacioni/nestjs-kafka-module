@@ -1,6 +1,6 @@
 import { KafkaJS } from "@confluentinc/kafka-javascript";
 import { Test } from "@nestjs/testing";
-import { KAFKA_CONSUMER, KafkaModule } from "../src";
+import { KAFKA_CONSUMER_PROVIDER, KafkaModule } from "../src";
 
 describe("App start if the consumer can't connect and autoConnect=false", () => {
   let app;
@@ -75,7 +75,7 @@ describe("App fail fast if the consumer can't connect, autoConnect=false and tim
       const app = moduleFixture.createNestApplication();
       await app.init();
 
-      const consumer: KafkaJS.Consumer = app.get(KAFKA_CONSUMER);
+      const consumer: KafkaJS.Consumer = app.get(KAFKA_CONSUMER_PROVIDER);
 
       await consumer.connect();
     };
