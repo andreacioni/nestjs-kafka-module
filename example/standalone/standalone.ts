@@ -1,15 +1,20 @@
 import { KafkaJS } from "@confluentinc/kafka-javascript";
 import { Inject, Module, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
-import { KAFKA_CONSUMER, KAFKA_PRODUCER, KafkaModule } from "../../src/index";
+import {
+  KAFKA_CONSUMER_PROVIDER,
+  KAFKA_PRODUCER_PROVIDER,
+  KafkaModule,
+} from "../../src/index";
 
 class AppService implements OnModuleDestroy, OnModuleInit {
   private interval: NodeJS.Timeout | undefined;
   private counter: number = 0;
 
   constructor(
-    @Inject(KAFKA_PRODUCER) private readonly producer: KafkaJS.Producer,
-    @Inject(KAFKA_CONSUMER) private readonly consumer: KafkaJS.Consumer
+    @Inject(KAFKA_PRODUCER_PROVIDER)
+    private readonly producer: KafkaJS.Producer,
+    @Inject(KAFKA_CONSUMER_PROVIDER) private readonly consumer: KafkaJS.Consumer
   ) {}
 
   private async consume(message: KafkaJS.EachMessagePayload) {
@@ -50,23 +55,20 @@ class AppService implements OnModuleDestroy, OnModuleInit {
 @Module({
   imports: [
     KafkaModule.forRoot({
-      /*consumer: {
+      consumer: {
         conf: {
           "bootstrap.servers": "localhost:9092",
           "group.id": "example-standalone-group",
         },
-      },*/
+      },
       producer: {
         conf: {
           "bootstrap.servers": "localhost:9092",
-          "api.version.request.timeout.ms": 1000,
-          retries: 0,
         },
       },
       adminClient: {
         conf: {
           "bootstrap.servers": "localhost:9092",
-          "socket.connection.setup.timeout.ms": 1000,
         },
       },
     }),

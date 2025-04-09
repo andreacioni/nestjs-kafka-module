@@ -1,6 +1,21 @@
 import { IAdminClient, KafkaJS } from "@confluentinc/kafka-javascript";
-import { Inject, Module, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
+import { EachMessagePayload } from "@confluentinc/kafka-javascript/types/kafkajs";
+import {
+  Controller,
+  Get,
+  Inject,
+  Injectable,
+  Module,
+  OnModuleDestroy,
+  OnModuleInit,
+} from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
+import {
+  HealthCheck,
+  HealthCheckService,
+  HealthIndicatorService,
+  TerminusModule,
+} from "@nestjs/terminus";
 import { KafkaModule } from "../../src/kafka/kafka.module";
 import {
   KAFKA_ADMIN_CLIENT_PROVIDER,
@@ -8,7 +23,38 @@ import {
   KAFKA_PRODUCER_PROVIDER,
 } from "../../src/kafka/providers/kafka.connection";
 
-import { EachMessagePayload } from "@confluentinc/kafka-javascript/types/kafkajs";
+@Injectable()
+export class KafkaHealthIndicator {
+  constructor(
+    @Inject() private readonly healthIndicatorService: HealthIndicatorService,
+    @Inject(KAFKA_ADMIN_CLIENT_PROVIDER)
+    private readonly adminClient: KafkaJS.Admin
+  ) {}
+
+  async isHealty() {
+    const indicator = this.healthIndicatorService.check("kafka");
+    try {
+      await this.adminClient.fetchTopicMetadata();
+      return indicator.up();
+    } catch (error) {
+      return indicator.down();
+    }
+  }
+}
+
+@Controller("health")
+export class HealthController {
+  constructor(
+    private health: HealthCheckService,
+    private kafkaHealthIndicator: KafkaHealthIndicator
+  ) {}
+
+  @Get()
+  @HealthCheck()
+  healthCheck() {
+    return this.health.check([() => this.kafkaHealthIndicator.isHealty()]);
+  }
+}
 
 class AppService implements OnModuleDestroy, OnModuleInit {
   private interval: NodeJS.Timeout | undefined;
@@ -28,14 +74,6 @@ class AppService implements OnModuleDestroy, OnModuleInit {
     partition,
   }: EachMessagePayload): Promise<void> {
     console.log("message received: %s", message.value?.toString());
-    await this.consumer.commitOffsets([
-      {
-        topic: topic,
-        partition: partition,
-        offset: (message.offset + 1).toString(),
-      },
-    ]);
-    console.log("message committed: %s", message.value);
   }
 
   private async produce(): Promise<void> {
@@ -76,24 +114,26 @@ class AppService implements OnModuleDestroy, OnModuleInit {
 
 @Module({
   imports: [
+    TerminusModule.forRoot({
+      gracefulShutdownTimeoutMs: 10000,
+    }),
     KafkaModule.forRoot({
       consumer: {
         conf: {
           "bootstrap.servers": "localhost:9092",
           "group.id": "nestjs-rdkafka-test",
-          "enable.auto.commit": false,
         },
       },
       producer: {
         conf: {
           "bootstrap.servers": "localhost:9092",
-          "enable.idempotence": true,
         },
       },
       adminClient: { conf: { "metadata.broker.list": "127.0.0.1:9092" } },
     }),
   ],
-  providers: [AppService],
+  providers: [AppService, KafkaHealthIndicator],
+  controllers: [HealthController],
 })
 class AppModule {}
 
