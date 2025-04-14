@@ -1,6 +1,6 @@
 {
   "name": "nestjs-kafka-module",
-  "version": "2.0.4",
+  "version": "3.0.0-beta.0",
   "description": "A NestJS module wrapper for @confluentinc/kafka-javascript.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -32,6 +32,11 @@
     "url": "https://github.com/andreacioni/nestjs-kafka-module/issues"
   },
   "homepage": "https://github.com/andreacioni/nestjs-kafka-module#readme",
+  "peerDependencies": {
+    "@confluentinc/kafka-javascript": "^1.0.0",
+    "@confluentinc/schemaregistry": "^1.0.0",
+    "@nestjs/terminus": "^11.0.0"
+  },
   "devDependencies": {
     "@commitlint/cli": "^19.0.0",
     "@commitlint/config-conventional": "19.6.0",
@@ -117,10 +122,7 @@
       "path": "./node_modules/cz-conventional-changelog"
     }
   },
-  "dependencies": {
-    "@confluentinc/kafka-javascript": "^1.2.0",
-    "@confluentinc/schemaregistry": "^1.1.0"
-  },
+
   "husky": {
     "hooks": {
       "pre-commit": "lint-staged"
