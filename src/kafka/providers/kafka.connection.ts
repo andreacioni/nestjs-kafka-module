@@ -1,6 +1,7 @@
-import { AdminClient, KafkaJS } from "@confluentinc/kafka-javascript";
+import { KafkaJS } from "@confluentinc/kafka-javascript";
 import { SchemaRegistryClient } from "@confluentinc/schemaregistry";
-import { Provider } from "@nestjs/common";
+import { DynamicModule, Provider } from "@nestjs/common";
+import { HealthIndicatorService } from "@nestjs/terminus";
 import { KafkaAdminClientOptions } from "../interfaces/kafka-admin-client-options";
 import {
   KafkaConnectionAsyncOptions,
@@ -9,11 +10,13 @@ import {
 import { KafkaConsumerOptions } from "../interfaces/kafka-consumer-options";
 import { KafkaProducerOptions } from "../interfaces/kafka-producer-options";
 import { KafkaSchemaRegistryClientOptions } from "../interfaces/kafka-schema-registry-options";
+import { KafkaHealthIndicator } from "./kafka.health";
 
 export const KAFKA_ADMIN_CLIENT_PROVIDER = "KAFKA_ADMIN_CLIENT";
 export const KAFKA_PRODUCER_PROVIDER = "KAFKA_PRODUCER";
 export const KAFKA_CONSUMER_PROVIDER = "KAFKA_CONSUMER";
 export const KAFKA_CONFIGURATION_PROVIDER = "KAFKA_CONFIGURATION";
+export const KAFKA_HEALTH_INDICATOR_PROVIDER = KafkaHealthIndicator;
 
 export function createConsumer(
   consumerOptions: KafkaConsumerOptions
@@ -41,9 +44,10 @@ function createSchemaRegistry(
 }
 
 export function getKafkaConnectionProviderList(
-  options: KafkaConnectionOptions
+  options: KafkaConnectionOptions,
+  pluginModules: DynamicModule[]
 ): Provider[] {
-  const adminClient: AdminClient | undefined =
+  const adminClient: KafkaJS.Admin | undefined =
     options.adminClient && createAdminClient(options.adminClient);
   const consumer: KafkaJS.Consumer | undefined =
     options.consumer && createConsumer(options.consumer);
@@ -52,19 +56,46 @@ export function getKafkaConnectionProviderList(
   const schemaRegistry: SchemaRegistryClient | undefined =
     options.schemaRegistry && createSchemaRegistry(options.schemaRegistry);
 
-  return [
+  const providers: Provider[] = [
     { provide: KAFKA_CONFIGURATION_PROVIDER, useValue: options },
     { provide: KAFKA_ADMIN_CLIENT_PROVIDER, useValue: adminClient },
     { provide: KAFKA_CONSUMER_PROVIDER, useValue: consumer },
     { provide: KAFKA_PRODUCER_PROVIDER, useValue: producer },
     { provide: SchemaRegistryClient, useValue: schemaRegistry },
   ];
+
+  if (adminClient) {
+    providers.push({
+      provide: KafkaHealthIndicator,
+      useFactory: (healthIndicatorService?: HealthIndicatorService) => {
+        return new KafkaHealthIndicator(healthIndicatorService, adminClient);
+      },
+      inject: [{ token: HealthIndicatorService, optional: true }],
+    });
+  }
+
+  return providers;
 }
 
 export function getAsyncKafkaConnectionProvider(
   options: KafkaConnectionAsyncOptions
 ): Provider[] {
   return [
+    {
+      provide: KAFKA_HEALTH_INDICATOR_PROVIDER,
+      useFactory: (
+        healthIndicatorService?: HealthIndicatorService,
+        adminClient?: KafkaJS.Admin,
+        ...args
+      ) => {
+        return new KafkaHealthIndicator(healthIndicatorService, adminClient);
+      },
+      inject: [
+        { token: HealthIndicatorService, optional: true },
+        { token: KAFKA_ADMIN_CLIENT_PROVIDER, optional: true },
+        ...(options.inject ?? []),
+      ],
+    },
     {
       provide: KAFKA_ADMIN_CLIENT_PROVIDER,
       inject: options.inject,

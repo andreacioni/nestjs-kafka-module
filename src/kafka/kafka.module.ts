@@ -13,6 +13,7 @@ import {
   getKafkaConnectionProviderList,
 } from "./providers/kafka.connection";
 import KafkaLifecycleManager from "./providers/kafka.lifecycle";
+import { debugLog } from "./utils/kafka.utils";
 
 const getKafkaLifecycleMangerProvider = (): Provider => {
   return {
@@ -41,10 +42,13 @@ export class KafkaModule {
    * @internal
    */
   static forRoot(options: KafkaConnectionOptions): DynamicModule {
-    const connectionProvider = getKafkaConnectionProviderList(options);
+    const modules = this.loadPluginModules();
+
+    const connectionProvider = getKafkaConnectionProviderList(options, modules);
 
     return {
       module: KafkaModule,
+      imports: modules,
       providers: [...connectionProvider, getKafkaLifecycleMangerProvider()],
       exports: [...connectionProvider],
       global: options.global ?? true,
@@ -60,9 +64,11 @@ export class KafkaModule {
   ): Promise<DynamicModule> {
     const providers: Provider[] = [...getAsyncKafkaConnectionProvider(options)];
 
+    const modules = this.loadPluginModules();
+
     return {
       module: KafkaModule,
-      imports: options.imports,
+      imports: [options.imports, ...modules],
       providers: [
         {
           provide: KAFKA_CONFIGURATION_PROVIDER,
@@ -75,5 +81,15 @@ export class KafkaModule {
       exports: providers,
       global: options.global ?? true,
     } as DynamicModule;
+  }
+
+  static loadPluginModules(): DynamicModule[] {
+    try {
+      const { TerminusModule } = require("@nestjs/terminus");
+      return [{ module: TerminusModule }];
+    } catch (e) {
+      debugLog("TerminusModule not found ");
+      return [];
+    }
   }
 }
