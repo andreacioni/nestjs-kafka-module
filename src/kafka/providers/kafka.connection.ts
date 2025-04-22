@@ -88,9 +88,9 @@ export function getAsyncKafkaConnectionProvider(
     {
       provide: KafkaMetricsService,
       useFactory: (
-        adminClient: KafkaJS.Admin,
-        config: KafkaConnectionOptions,
-        consumer: KafkaJS.Consumer,
+        adminClient?: KafkaJS.Admin,
+        config?: KafkaConnectionOptions,
+        consumer?: KafkaJS.Consumer,
         ...args
       ) => {
         return new KafkaMetricsService(adminClient, config, consumer);

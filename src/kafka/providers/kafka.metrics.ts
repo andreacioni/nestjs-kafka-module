@@ -1,11 +1,5 @@
 import { KafkaJS } from "@confluentinc/kafka-javascript";
-import { Inject } from "@nestjs/common";
 import { KafkaConnectionOptions } from "../interfaces/kafka-connection-options";
-import {
-  KAFKA_ADMIN_CLIENT_TOKEN,
-  KAFKA_CONFIGURATION_TOKEN,
-  KAFKA_CONSUMER_TOKEN,
-} from "./kafka.connection";
 
 type KafkaTopicMetrics = Record<string, KafkaPartitionMetrics>;
 
@@ -19,10 +13,9 @@ export interface KafkaMetrics {
 
 export class KafkaMetricsService {
   constructor(
-    @Inject(KAFKA_ADMIN_CLIENT_TOKEN) private readonly admin?: KafkaJS.Admin,
-    @Inject(KAFKA_CONFIGURATION_TOKEN)
+    private readonly admin?: KafkaJS.Admin,
+
     private readonly config?: KafkaConnectionOptions,
-    @Inject(KAFKA_CONSUMER_TOKEN)
     private readonly consumer?: KafkaJS.Consumer
   ) {}
 
