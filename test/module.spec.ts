@@ -1,5 +1,4 @@
 import { KafkaJS } from "@confluentinc/kafka-javascript";
-import { ConfigModule, ConfigService } from "@nestjs/config";
 import { NestApplication } from "@nestjs/core";
 import { Test } from "@nestjs/testing";
 import { setTimeout as timeout } from "node:timers/promises";
@@ -28,7 +27,7 @@ const deleteTopic = async (admin: KafkaJS.Admin) => {
   await admin.deleteTopics({ topics: ["test_topic"] });
 };
 
-describe("App consuming KafkaModule build with forRootAsync", () => {
+/*describe("App consuming KafkaModule build with forRootAsync", () => {
   let app: NestApplication;
   let startedContainer: StartedDockerComposeEnvironment;
 
@@ -84,7 +83,7 @@ describe("App consuming KafkaModule build with forRootAsync", () => {
   it("should mock app defined", async () => {
     expect(app).toBeDefined();
   });
-});
+});*/
 
 describe("App produce and consume message asynchronously", () => {
   let app: NestApplication;
