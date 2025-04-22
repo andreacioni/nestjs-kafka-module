@@ -8,61 +8,57 @@ import {
   Module,
   OnModuleInit,
   Query,
+  Res,
 } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import {
-  KAFKA_ADMIN_CLIENT_PROVIDER,
-  KAFKA_CONSUMER_PROVIDER,
-  KAFKA_PRODUCER_PROVIDER,
+  InjectMetric,
+  makeGaugeProvider,
+  PrometheusController,
+  PrometheusModule,
+} from "@willsoto/nestjs-prometheus";
+import { Gauge } from "prom-client";
+import {
+  KAFKA_CONSUMER_TOKEN,
+  KAFKA_PRODUCER_TOKEN,
+  KafkaMetricsService,
   KafkaModule,
 } from "../../src/index";
 
 @Controller("metrics")
-class MetricsController {
+class MetricsController extends PrometheusController {
   constructor(
-    @Inject(KAFKA_ADMIN_CLIENT_PROVIDER) private readonly admin: KafkaJS.Admin,
-    @Inject(KAFKA_CONSUMER_PROVIDER) private readonly consumer: KafkaJS.Consumer
-  ) {}
+    @Inject(KAFKA_METRICS_TOKEN)
+    private readonly kafkaMetrics: KafkaMetricsService,
+    @InjectMetric("kafka_consumer_offset")
+    public consumerOffsetGauge: Gauge<string>,
+    @InjectMetric("kafka_producer_offset")
+    public producerOffsetGauge: Gauge<string>,
+    @InjectMetric("kafka_consumer_lag") public lagGauge: Gauge<string>
+  ) {
+    super();
+  }
 
   @Get()
-  async metrics() {
-    // Step 1: Fetch producer offsets
-    const producerOffset = await this.admin.fetchTopicOffsets("DEMO_TOPIC");
+  async index(@Res({ passthrough: true }) response: Response) {
+    const metrics = await this.kafkaMetrics.getMetrics();
+    for (const topic in metrics) {
+      const { lag, consumerOffset, producerOffset } = metrics[topic];
+      this.consumerOffsetGauge.set({ topic }, consumerOffset ?? 0);
+      this.producerOffsetGauge.set({ topic }, producerOffset ?? 0);
+      this.lagGauge.set({ topic }, lag ?? 0);
+    }
 
-    // Step 2: Fetch consumer offsets for the group
-    const consumerOffsets = await this.admin.fetchOffsets({
-      groupId: "nestjs-rdkafka-test",
-      topics: ["DEMO_TOPIC"],
-    });
-
-    const consumerMetrics = {};
-    consumerOffsets.forEach((offset) => {
-      consumerMetrics[offset.topic] = offset.partitions.reduce(
-        (prev, curr) => Math.max(prev, Number.parseInt(curr.offset)),
-        0
-      );
-    });
-
-    const producerMetrics = {};
-    producerOffset.forEach((offset) => {
-      producerMetrics["DEMO_TOPIC"] = Number.parseInt(offset.offset);
-    });
-
-    const lag = {};
-
-    Object.keys(consumerMetrics).forEach((topic) => {
-      lag[topic] = producerMetrics[topic] - consumerMetrics[topic];
-    });
-    return { producerMetrics, consumerMetrics, lag };
+    return super.index(response);
   }
 }
 
 class AppService implements OnModuleInit {
   private readonly queue: EachMessagePayload[] = [];
   constructor(
-    @Inject(KAFKA_CONSUMER_PROVIDER)
+    @Inject(KAFKA_CONSUMER_TOKEN)
     private readonly consumer: KafkaJS.Consumer,
-    @Inject(KAFKA_PRODUCER_PROVIDER)
+    @Inject(KAFKA_PRODUCER_TOKEN)
     private readonly producer: KafkaJS.Producer
   ) {}
 
@@ -143,8 +139,26 @@ class AppController {
       },
       adminClient: { conf: { "bootstrap.servers": "127.0.0.1:9092" } },
     }),
+    PrometheusModule.register(),
   ],
-  providers: [AppService],
+  providers: [
+    AppService,
+    makeGaugeProvider({
+      name: "kafka_consumer_lag",
+      help: "This is the lag of current process consumer group.",
+      labelNames: ["topic"],
+    }),
+    makeGaugeProvider({
+      name: "kafka_consumer_offset",
+      help: "This is the offset of current process consumer group.",
+      labelNames: ["topic"],
+    }),
+    makeGaugeProvider({
+      name: "kafka_producer_offset",
+      help: "This is the offset of the latest message sent to the broker.",
+      labelNames: ["topic"],
+    }),
+  ],
   controllers: [MetricsController, AppController],
 })
 class AppModule {}

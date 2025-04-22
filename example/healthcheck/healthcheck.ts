@@ -16,9 +16,9 @@ import {
 } from "@nestjs/terminus";
 import { KafkaModule } from "../../src/kafka/kafka.module";
 import {
-  KAFKA_ADMIN_CLIENT_PROVIDER,
-  KAFKA_CONSUMER_PROVIDER,
-  KAFKA_PRODUCER_PROVIDER,
+  KAFKA_ADMIN_CLIENT_TOKEN,
+  KAFKA_CONSUMER_TOKEN,
+  KAFKA_PRODUCER_TOKEN,
 } from "../../src/kafka/providers/kafka.connection";
 import { KafkaHealthIndicator } from "../../src/kafka/providers/kafka.health";
 
@@ -41,11 +41,11 @@ class AppService implements OnModuleDestroy, OnModuleInit {
   private counter: number = 0;
 
   constructor(
-    @Inject(KAFKA_CONSUMER_PROVIDER)
+    @Inject(KAFKA_CONSUMER_TOKEN)
     private readonly consumer: KafkaJS.Consumer,
-    @Inject(KAFKA_PRODUCER_PROVIDER)
+    @Inject(KAFKA_PRODUCER_TOKEN)
     private readonly producer: KafkaJS.Producer,
-    @Inject(KAFKA_ADMIN_CLIENT_PROVIDER) private readonly admin: IAdminClient
+    @Inject(KAFKA_ADMIN_CLIENT_TOKEN) private readonly admin: IAdminClient
   ) {}
 
   private async consume({
@@ -94,9 +94,7 @@ class AppService implements OnModuleDestroy, OnModuleInit {
 
 @Module({
   imports: [
-    TerminusModule.forRoot({
-      gracefulShutdownTimeoutMs: 10000,
-    }),
+    TerminusModule.forRoot(),
     KafkaModule.forRoot({
       consumer: {
         conf: {

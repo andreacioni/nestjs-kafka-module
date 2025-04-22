@@ -2,8 +2,8 @@ import { KafkaJS } from "@confluentinc/kafka-javascript";
 import { Inject, Module, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import {
-  KAFKA_CONSUMER_PROVIDER,
-  KAFKA_PRODUCER_PROVIDER,
+  KAFKA_CONSUMER_TOKEN,
+  KAFKA_PRODUCER_TOKEN,
   KafkaModule,
 } from "../../src/index";
 
@@ -12,9 +12,9 @@ class AppService implements OnModuleDestroy, OnModuleInit {
   private counter: number = 0;
 
   constructor(
-    @Inject(KAFKA_PRODUCER_PROVIDER)
+    @Inject(KAFKA_PRODUCER_TOKEN)
     private readonly producer: KafkaJS.Producer,
-    @Inject(KAFKA_CONSUMER_PROVIDER) private readonly consumer: KafkaJS.Consumer
+    @Inject(KAFKA_CONSUMER_TOKEN) private readonly consumer: KafkaJS.Consumer
   ) {}
 
   private async consume(message: KafkaJS.EachMessagePayload) {

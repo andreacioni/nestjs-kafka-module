@@ -1,11 +1,11 @@
-import { IAdminClient, KafkaJS } from "@confluentinc/kafka-javascript";
+import { KafkaJS } from "@confluentinc/kafka-javascript";
 import { Inject, Module, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { KafkaModule } from "../../src/kafka/kafka.module";
 import {
-  KAFKA_ADMIN_CLIENT_PROVIDER,
-  KAFKA_CONSUMER_PROVIDER,
-  KAFKA_PRODUCER_PROVIDER,
+  KAFKA_ADMIN_CLIENT_TOKEN,
+  KAFKA_CONSUMER_TOKEN,
+  KAFKA_PRODUCER_TOKEN,
 } from "../../src/kafka/providers/kafka.connection";
 
 import { EachMessagePayload } from "@confluentinc/kafka-javascript/types/kafkajs";
@@ -15,11 +15,11 @@ class AppService implements OnModuleDestroy, OnModuleInit {
   private counter: number = 0;
 
   constructor(
-    @Inject(KAFKA_CONSUMER_PROVIDER)
+    @Inject(KAFKA_CONSUMER_TOKEN)
     private readonly consumer: KafkaJS.Consumer,
-    @Inject(KAFKA_PRODUCER_PROVIDER)
+    @Inject(KAFKA_PRODUCER_TOKEN)
     private readonly producer: KafkaJS.Producer,
-    @Inject(KAFKA_ADMIN_CLIENT_PROVIDER) private readonly admin: IAdminClient
+    @Inject(KAFKA_ADMIN_CLIENT_TOKEN) private readonly admin: KafkaJS.Admin
   ) {}
 
   private async consume({
@@ -39,16 +39,22 @@ class AppService implements OnModuleDestroy, OnModuleInit {
   }
 
   private async produce(): Promise<void> {
+    console.log("producing message:" + this.counter);
     const msg = Buffer.from((this.counter++).toString());
-    const res = await this.producer.send({
-      topic: "DEMO_TOPIC",
-      messages: [{ value: msg }],
-    });
-    for (const record of res) {
-      if (record.errorCode !== 0) {
-        throw new Error("error sending message: " + record.errorCode);
+
+    try {
+      const res = await this.producer.send({
+        topic: "DEMO_TOPIC",
+        messages: [{ value: msg }],
+      });
+      for (const record of res) {
+        if (record.errorCode !== 0) {
+          throw new Error("error sending message: " + record.errorCode);
+        }
+        console.log("message sent");
       }
-      console.log("message sent");
+    } catch (e) {
+      console.error("failed to produce message: %s", e);
     }
   }
 
@@ -87,7 +93,9 @@ class AppService implements OnModuleDestroy, OnModuleInit {
       producer: {
         conf: {
           "bootstrap.servers": "localhost:9092",
-          "enable.idempotence": true,
+          retries: 1,
+          "queue.buffering.max.messages": 1,
+          //"enable.idempotence": true,
         },
       },
       adminClient: { conf: { "metadata.broker.list": "127.0.0.1:9092" } },
