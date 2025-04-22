@@ -19,6 +19,7 @@ export const KAFKA_CONSUMER_TOKEN = "KAFKA_CONSUMER";
 export const KAFKA_CONFIGURATION_TOKEN = "KAFKA_CONFIGURATION";
 export const KAFKA_SCHEMA_REGISTRY_TOKEN = SchemaRegistryClient;
 export const KAFKA_HEALTH_INDICATOR_TOKEN = KafkaHealthIndicator;
+export const KAFKA_METRICS_TOKEN = KafkaMetricsService;
 
 function createConsumer(
   consumerOptions: KafkaConsumerOptions
