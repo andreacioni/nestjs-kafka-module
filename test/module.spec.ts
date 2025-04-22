@@ -6,9 +6,9 @@ import { setTimeout as timeout } from "node:timers/promises";
 import { StartedDockerComposeEnvironment } from "testcontainers";
 import { KafkaModule } from "../src";
 import {
-  KAFKA_ADMIN_CLIENT_PROVIDER,
-  KAFKA_CONSUMER_PROVIDER,
-  KAFKA_PRODUCER_PROVIDER,
+  KAFKA_ADMIN_CLIENT_TOKEN,
+  KAFKA_CONSUMER_TOKEN,
+  KAFKA_PRODUCER_TOKEN,
 } from "../src/kafka/providers/kafka.connection";
 import { startTestCompose, stopTestCompose } from "./testcontainers-utils";
 
@@ -112,7 +112,7 @@ describe("App produce and consume message asynchronously", () => {
     app = moduleFixture.createNestApplication();
     await app.init();
 
-    admin = app.get(KAFKA_ADMIN_CLIENT_PROVIDER);
+    admin = app.get(KAFKA_ADMIN_CLIENT_TOKEN);
 
     await createTopic(admin);
   });
@@ -125,8 +125,8 @@ describe("App produce and consume message asynchronously", () => {
   it("should produce and consume 2 messages (asynchronously)", async () => {
     expect(app).toBeDefined();
 
-    const consumer: KafkaJS.Consumer = app.get(KAFKA_CONSUMER_PROVIDER);
-    const producer: KafkaJS.Producer = app.get(KAFKA_PRODUCER_PROVIDER);
+    const consumer: KafkaJS.Consumer = app.get(KAFKA_CONSUMER_TOKEN);
+    const producer: KafkaJS.Producer = app.get(KAFKA_PRODUCER_TOKEN);
 
     const consumerFn = jest.fn();
 
@@ -184,7 +184,7 @@ describe("App produce and consume message synchronously", () => {
     app = moduleFixture.createNestApplication();
     await app.init();
 
-    admin = app.get(KAFKA_ADMIN_CLIENT_PROVIDER);
+    admin = app.get(KAFKA_ADMIN_CLIENT_TOKEN);
 
     await createTopic(admin);
   });
@@ -201,8 +201,8 @@ describe("App produce and consume message synchronously", () => {
   it("should produce and consume 2 messages (synchronously)", async () => {
     expect(app).toBeDefined();
 
-    const consumer: KafkaJS.Consumer = app.get(KAFKA_CONSUMER_PROVIDER);
-    const producer: KafkaJS.Producer = app.get(KAFKA_PRODUCER_PROVIDER);
+    const consumer: KafkaJS.Consumer = app.get(KAFKA_CONSUMER_TOKEN);
+    const producer: KafkaJS.Producer = app.get(KAFKA_PRODUCER_TOKEN);
 
     expect(admin).toBeDefined();
 
@@ -277,9 +277,9 @@ describe("App produce and consume message with auto connect disabled", () => {
     app = moduleFixture.createNestApplication();
     await app.init();
 
-    admin = app.get(KAFKA_ADMIN_CLIENT_PROVIDER);
-    consumer = app.get(KAFKA_CONSUMER_PROVIDER);
-    producer = app.get(KAFKA_PRODUCER_PROVIDER);
+    admin = app.get(KAFKA_ADMIN_CLIENT_TOKEN);
+    consumer = app.get(KAFKA_CONSUMER_TOKEN);
+    producer = app.get(KAFKA_PRODUCER_TOKEN);
 
     await producer.connect();
     await consumer.connect();
@@ -371,9 +371,9 @@ describe("Test call getMetadata", () => {
     app = moduleFixture.createNestApplication();
     await app.init();
 
-    consumer = app.get(KAFKA_CONSUMER_PROVIDER);
-    producer = app.get(KAFKA_PRODUCER_PROVIDER);
-    admin = app.get(KAFKA_ADMIN_CLIENT_PROVIDER);
+    consumer = app.get(KAFKA_CONSUMER_TOKEN);
+    producer = app.get(KAFKA_PRODUCER_TOKEN);
+    admin = app.get(KAFKA_ADMIN_CLIENT_TOKEN);
 
     await producer.connect();
     await consumer.connect();
@@ -477,9 +477,9 @@ describe("Test call getMetadata when the broker has crashed", () => {
     app = moduleFixture.createNestApplication();
     await app.init();
 
-    consumer = app.get(KAFKA_CONSUMER_PROVIDER);
-    producer = app.get(KAFKA_PRODUCER_PROVIDER);
-    admin = app.get(KAFKA_ADMIN_CLIENT_PROVIDER);
+    consumer = app.get(KAFKA_CONSUMER_TOKEN);
+    producer = app.get(KAFKA_PRODUCER_TOKEN);
+    admin = app.get(KAFKA_ADMIN_CLIENT_TOKEN);
 
     await producer.connect();
     await consumer.connect();

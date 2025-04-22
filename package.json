@@ -20,7 +20,8 @@
     "prettier": "prettier --write .",
     "example:standalone": "nest start -c example/standalone/nest-cli.standalone.json",
     "example:manual-commit": "nest start -c example/manual-commit/nest-cli.manual-commit.json",
-    "example:healthcheck": "nest start -c example/healthcheck/nest-cli.healthcheck.json"
+    "example:healthcheck": "nest start -c example/healthcheck/nest-cli.healthcheck.json",
+    "example:metrics": "nest start -c example/metrics/nest-cli.metrics.json"
   },
   "repository": {
     "type": "git",
@@ -35,7 +36,7 @@
   "peerDependencies": {
     "@confluentinc/kafka-javascript": "^1.0.0",
     "@confluentinc/schemaregistry": "^1.0.0",
-    "@nestjs/terminus": "^11.0.0"
+    "@nestjs/terminus": ">=10.0.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.0.0",
@@ -55,6 +56,7 @@
     "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "4.33.0",
     "@typescript-eslint/parser": "4.33.0",
+    "@willsoto/nestjs-prometheus": "^6.0.2",
     "commitizen": "^4.3.0",
     "coveralls": "3.1.1",
     "cz-conventional-changelog": "3.3.0",
@@ -122,7 +124,6 @@
       "path": "./node_modules/cz-conventional-changelog"
     }
   },
-
   "husky": {
     "hooks": {
       "pre-commit": "lint-staged"
@@ -133,5 +134,8 @@
       "prettier --write",
       "git add"
     ]
+  },
+  "dependencies": {
+    "prom-client": "^15.1.3"
   }
 }

@@ -11,14 +11,16 @@ import { KafkaConsumerOptions } from "../interfaces/kafka-consumer-options";
 import { KafkaProducerOptions } from "../interfaces/kafka-producer-options";
 import { KafkaSchemaRegistryClientOptions } from "../interfaces/kafka-schema-registry-options";
 import { KafkaHealthIndicator } from "./kafka.health";
+import { KafkaMetricsService } from "./kafka.metrics";
 
-export const KAFKA_ADMIN_CLIENT_PROVIDER = "KAFKA_ADMIN_CLIENT";
-export const KAFKA_PRODUCER_PROVIDER = "KAFKA_PRODUCER";
-export const KAFKA_CONSUMER_PROVIDER = "KAFKA_CONSUMER";
-export const KAFKA_CONFIGURATION_PROVIDER = "KAFKA_CONFIGURATION";
-export const KAFKA_HEALTH_INDICATOR_PROVIDER = KafkaHealthIndicator;
+export const KAFKA_ADMIN_CLIENT_TOKEN = "KAFKA_ADMIN_CLIENT";
+export const KAFKA_PRODUCER_TOKEN = "KAFKA_PRODUCER";
+export const KAFKA_CONSUMER_TOKEN = "KAFKA_CONSUMER";
+export const KAFKA_CONFIGURATION_TOKEN = "KAFKA_CONFIGURATION";
+export const KAFKA_SCHEMA_REGISTRY_TOKEN = SchemaRegistryClient;
+export const KAFKA_HEALTH_INDICATOR_TOKEN = KafkaHealthIndicator;
 
-export function createConsumer(
+function createConsumer(
   consumerOptions: KafkaConsumerOptions
 ): KafkaJS.Consumer {
   const consumer = new KafkaJS.Kafka({}).consumer(consumerOptions.conf);
@@ -57,22 +59,24 @@ export function getKafkaConnectionProviderList(
     options.schemaRegistry && createSchemaRegistry(options.schemaRegistry);
 
   const providers: Provider[] = [
-    { provide: KAFKA_CONFIGURATION_PROVIDER, useValue: options },
-    { provide: KAFKA_ADMIN_CLIENT_PROVIDER, useValue: adminClient },
-    { provide: KAFKA_CONSUMER_PROVIDER, useValue: consumer },
-    { provide: KAFKA_PRODUCER_PROVIDER, useValue: producer },
-    { provide: SchemaRegistryClient, useValue: schemaRegistry },
+    { provide: KAFKA_CONFIGURATION_TOKEN, useValue: options },
+    { provide: KAFKA_ADMIN_CLIENT_TOKEN, useValue: adminClient },
+    { provide: KAFKA_CONSUMER_TOKEN, useValue: consumer },
+    { provide: KAFKA_PRODUCER_TOKEN, useValue: producer },
+    { provide: KAFKA_SCHEMA_REGISTRY_TOKEN, useValue: schemaRegistry },
+    {
+      provide: KafkaMetricsService,
+      useValue: new KafkaMetricsService(adminClient, options, consumer),
+    },
   ];
 
-  if (adminClient) {
-    providers.push({
-      provide: KafkaHealthIndicator,
-      useFactory: (healthIndicatorService?: HealthIndicatorService) => {
-        return new KafkaHealthIndicator(healthIndicatorService, adminClient);
-      },
-      inject: [{ token: HealthIndicatorService, optional: true }],
-    });
-  }
+  providers.push({
+    provide: KAFKA_HEALTH_INDICATOR_TOKEN,
+    useFactory: (healthIndicatorService?: HealthIndicatorService) => {
+      return new KafkaHealthIndicator(healthIndicatorService, adminClient);
+    },
+    inject: [{ token: HealthIndicatorService, optional: true }],
+  });
 
   return providers;
 }
@@ -82,7 +86,24 @@ export function getAsyncKafkaConnectionProvider(
 ): Provider[] {
   return [
     {
-      provide: KAFKA_HEALTH_INDICATOR_PROVIDER,
+      provide: KafkaMetricsService,
+      useFactory: (
+        adminClient: KafkaJS.Admin,
+        config: KafkaConnectionOptions,
+        consumer: KafkaJS.Consumer,
+        ...args
+      ) => {
+        return new KafkaMetricsService(adminClient, config, consumer);
+      },
+      inject: [
+        { token: KAFKA_ADMIN_CLIENT_TOKEN, optional: true },
+        { token: KAFKA_CONFIGURATION_TOKEN, optional: true },
+        { token: KAFKA_CONSUMER_TOKEN, optional: true },
+        ...(options.inject ?? []),
+      ],
+    },
+    {
+      provide: KAFKA_HEALTH_INDICATOR_TOKEN,
       useFactory: (
         healthIndicatorService?: HealthIndicatorService,
         adminClient?: KafkaJS.Admin,
@@ -92,12 +113,12 @@ export function getAsyncKafkaConnectionProvider(
       },
       inject: [
         { token: HealthIndicatorService, optional: true },
-        { token: KAFKA_ADMIN_CLIENT_PROVIDER, optional: true },
+        { token: KAFKA_ADMIN_CLIENT_TOKEN, optional: true },
         ...(options.inject ?? []),
       ],
     },
     {
-      provide: KAFKA_ADMIN_CLIENT_PROVIDER,
+      provide: KAFKA_ADMIN_CLIENT_TOKEN,
       inject: options.inject,
       useFactory: async (
         ...args: any[]
@@ -111,7 +132,7 @@ export function getAsyncKafkaConnectionProvider(
       },
     },
     {
-      provide: KAFKA_CONSUMER_PROVIDER,
+      provide: KAFKA_CONSUMER_TOKEN,
       inject: options.inject,
       useFactory: async (
         ...args: any[]
@@ -125,7 +146,7 @@ export function getAsyncKafkaConnectionProvider(
       },
     },
     {
-      provide: KAFKA_PRODUCER_PROVIDER,
+      provide: KAFKA_PRODUCER_TOKEN,
       inject: options.inject,
       useFactory: async (
         ...args: any[]

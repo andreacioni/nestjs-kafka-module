@@ -2,9 +2,9 @@ import { SchemaRegistryClient } from "@confluentinc/schemaregistry";
 import { Test } from "@nestjs/testing";
 import { StartedDockerComposeEnvironment } from "testcontainers";
 import {
-  KAFKA_ADMIN_CLIENT_PROVIDER,
-  KAFKA_CONSUMER_PROVIDER,
-  KAFKA_PRODUCER_PROVIDER,
+  KAFKA_ADMIN_CLIENT_TOKEN,
+  KAFKA_CONSUMER_TOKEN,
+  KAFKA_PRODUCER_TOKEN,
   KafkaModule,
 } from "../src";
 import { startTestCompose, stopTestCompose } from "./testcontainers-utils";
@@ -44,9 +44,9 @@ describe("Schema registry connection and schema download", () => {
   });
 
   it("should KafkaProducer, AdminClient, Consumer not be defined", async () => {
-    const producer = app.get(KAFKA_PRODUCER_PROVIDER, { strict: false });
-    const consumer = app.get(KAFKA_CONSUMER_PROVIDER, { strict: false });
-    const adminClient = app.get(KAFKA_ADMIN_CLIENT_PROVIDER, { strict: false });
+    const producer = app.get(KAFKA_PRODUCER_TOKEN, { strict: false });
+    const consumer = app.get(KAFKA_CONSUMER_TOKEN, { strict: false });
+    const adminClient = app.get(KAFKA_ADMIN_CLIENT_TOKEN, { strict: false });
 
     expect(producer).toBeUndefined();
     expect(adminClient).toBeUndefined();

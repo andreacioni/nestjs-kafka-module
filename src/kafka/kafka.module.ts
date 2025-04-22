@@ -5,10 +5,10 @@ import {
   KafkaConnectionOptions,
 } from "./interfaces/kafka-connection-options";
 import {
-  KAFKA_ADMIN_CLIENT_PROVIDER,
-  KAFKA_CONFIGURATION_PROVIDER,
-  KAFKA_CONSUMER_PROVIDER,
-  KAFKA_PRODUCER_PROVIDER,
+  KAFKA_ADMIN_CLIENT_TOKEN,
+  KAFKA_CONFIGURATION_TOKEN,
+  KAFKA_CONSUMER_TOKEN,
+  KAFKA_PRODUCER_TOKEN,
   getAsyncKafkaConnectionProvider,
   getKafkaConnectionProviderList,
 } from "./providers/kafka.connection";
@@ -27,10 +27,10 @@ const getKafkaLifecycleMangerProvider = (): Provider => {
       return new KafkaLifecycleManager(config, producer, consumer, admin);
     },
     inject: [
-      KAFKA_ADMIN_CLIENT_PROVIDER,
-      KAFKA_PRODUCER_PROVIDER,
-      KAFKA_CONSUMER_PROVIDER,
-      KAFKA_CONFIGURATION_PROVIDER,
+      KAFKA_ADMIN_CLIENT_TOKEN,
+      KAFKA_PRODUCER_TOKEN,
+      KAFKA_CONSUMER_TOKEN,
+      KAFKA_CONFIGURATION_TOKEN,
     ],
   };
 };
@@ -71,7 +71,7 @@ export class KafkaModule {
       imports: [options.imports, ...modules],
       providers: [
         {
-          provide: KAFKA_CONFIGURATION_PROVIDER,
+          provide: KAFKA_CONFIGURATION_TOKEN,
           useFactory: options.useFactory,
           inject: options.inject,
         },

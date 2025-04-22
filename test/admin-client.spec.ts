@@ -5,8 +5,8 @@ import { Test } from "@nestjs/testing";
 import { StartedDockerComposeEnvironment } from "testcontainers";
 import { KafkaModule } from "../src";
 import {
-  KAFKA_ADMIN_CLIENT_PROVIDER,
-  KAFKA_HEALTH_INDICATOR_PROVIDER,
+  KAFKA_ADMIN_CLIENT_TOKEN,
+  KAFKA_HEALTH_INDICATOR_TOKEN,
 } from "../src/kafka/providers/kafka.connection";
 import { KafkaHealthIndicator } from "../src/kafka/providers/kafka.health";
 import { startTestCompose, stopTestCompose } from "./testcontainers-utils";
@@ -68,7 +68,7 @@ describe("Test admin client instance (Testcontainers wrapper)", () => {
 
     it("should create and delete a topic", async () => {
       expect(app).toBeDefined();
-      const adminClient: KafkaJS.Admin = app.get(KAFKA_ADMIN_CLIENT_PROVIDER);
+      const adminClient: KafkaJS.Admin = app.get(KAFKA_ADMIN_CLIENT_TOKEN);
       const newTopic: NewTopic = {
         topic: "new_topic",
         num_partitions: 1,
@@ -89,7 +89,7 @@ describe("Test admin client instance (Testcontainers wrapper)", () => {
     it("should fail to delete topic if it is not defined ", async () => {
       expect(app).toBeDefined();
 
-      const adminClient: KafkaJS.Admin = app.get(KAFKA_ADMIN_CLIENT_PROVIDER);
+      const adminClient: KafkaJS.Admin = app.get(KAFKA_ADMIN_CLIENT_TOKEN);
 
       const deletePromise = adminClient.deleteTopics({ topics: ["new_topic"] });
 
@@ -122,14 +122,14 @@ describe("Test admin client instance (Testcontainers wrapper)", () => {
 
       expect(app).toBeDefined();
 
-      const adminClient: KafkaJS.Admin = app.get(KAFKA_ADMIN_CLIENT_PROVIDER);
+      const adminClient: KafkaJS.Admin = app.get(KAFKA_ADMIN_CLIENT_TOKEN);
       expect(adminClient).toBeDefined();
 
       expect(app.get(KafkaHealthIndicator)).toBeDefined();
-      expect(app.get(KAFKA_HEALTH_INDICATOR_PROVIDER)).toBeDefined();
+      expect(app.get(KAFKA_HEALTH_INDICATOR_TOKEN)).toBeDefined();
 
       const indicator: KafkaHealthIndicator = app.get(
-        KAFKA_HEALTH_INDICATOR_PROVIDER
+        KAFKA_HEALTH_INDICATOR_TOKEN
       );
 
       await expect(indicator.isHealty()).rejects.toThrow(
@@ -137,7 +137,7 @@ describe("Test admin client instance (Testcontainers wrapper)", () => {
       );
     });
 
-    it("should not have indicator defined because adminClient config is not defined", async () => {
+    it("should have indicator defined even if adminClient config is not defined", async () => {
       const moduleFixture = await Test.createTestingModule({
         imports: [KafkaModule.forRoot({})],
       }).compile();
@@ -147,11 +147,11 @@ describe("Test admin client instance (Testcontainers wrapper)", () => {
 
       expect(app).toBeDefined();
 
-      const adminClient: KafkaJS.Admin = app.get(KAFKA_ADMIN_CLIENT_PROVIDER);
+      const adminClient: KafkaJS.Admin = app.get(KAFKA_ADMIN_CLIENT_TOKEN);
       expect(adminClient).not.toBeDefined();
 
-      expect(() => app!.get(KafkaHealthIndicator)).toThrow();
-      expect(() => app!.get(KAFKA_HEALTH_INDICATOR_PROVIDER)).toThrow(
+      expect(() => app!.get(KafkaHealthIndicator)).not.toThrow();
+      expect(() => app!.get(KAFKA_HEALTH_INDICATOR_TOKEN)).not.toThrow(
         "Nest could not find KafkaHealthIndicator element (this provider does not exist in the current context)"
       );
     });

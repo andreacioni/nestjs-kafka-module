@@ -1,5 +1,5 @@
 import { KafkaJS } from "@confluentinc/kafka-javascript";
-import { BeforeApplicationShutdown, OnModuleInit } from "@nestjs/common";
+import { OnApplicationShutdown, OnModuleInit } from "@nestjs/common";
 import { KafkaConnectionOptions } from "../interfaces/kafka-connection-options";
 import { debugLog } from "../utils/kafka.utils";
 
@@ -11,7 +11,7 @@ import { debugLog } from "../utils/kafka.utils";
  * @internal
  */
 export default class KafkaLifecycleManager
-  implements BeforeApplicationShutdown, OnModuleInit
+  implements OnApplicationShutdown, OnModuleInit
 {
   constructor(
     private readonly config: KafkaConnectionOptions,
@@ -20,7 +20,7 @@ export default class KafkaLifecycleManager
     private readonly admin: KafkaJS.Admin
   ) {}
 
-  async beforeApplicationShutdown() {
+  async onApplicationShutdown() {
     if ((this.config?.consumer?.autoConnect ?? true) && this.consumer) {
       try {
         debugLog("Consumer disconnecting");
