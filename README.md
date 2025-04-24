@@ -18,7 +18,7 @@ A [NestJS](https://nestjs.com/) module wrapper for [@confluentinc/kafka-javascri
 ## Installation
 
 ```bash
-npm i nestjs-kafka-module
+npm i nestjs-kafka-module @confluentinc/kafka-javascript
 ```
 
 Requirements:
@@ -30,7 +30,7 @@ Requirements:
 
 ## Basic usage
 
-Initialize a `KafkaModule` with configuration for a `consumer`, `producer` or `adminClient` respectively. A full list of configuration for each item can be found on `@confluentinc/kafka-javascript`'s [Configuration](https://github.com/confluentinc/librdkafka/blob/v2.3.0/CONFIGURATION.md) section.
+Initialize a `KafkaModule` with configuration for a `consumer`, `producer` or `adminClient` respectively. All the available configuration parameter for each item can be found on `@confluentinc/kafka-javascript`'s [Configuration](https://github.com/confluentinc/librdkafka/blob/v2.3.0/CONFIGURATION.md) section.
 
 **app.module.ts**
 
@@ -192,9 +192,35 @@ bootstrap();
 
 ## Health check
 
-Thanks to `terminus` and its integration with NestJS is it possible
+Thanks to `@nestjs/terminus` and its integration with NestJS is it possible to expose an indicator to check the status between the application and the broker. This library already expose an indicator when `@nestjs/terminus` is available. You can use it in you `/health` controller by doing this:
 
-## Schema Registry
+```typescript
+import {
+  HealthCheck,
+  HealthCheckService,
+} from "@nestjs/terminus";
+import {
+  KAFKA_ADMIN_CLIENT_TOKEN,
+  KAFKA_CONSUMER_TOKEN,
+  KAFKA_PRODUCER_TOKEN,
+} from "nestjs-kafka-module";
+import { KafkaHealthIndicator } from "nestjs-kafka-module";
+
+
+@Controller("health")
+export class HealthController {
+  constructor(
+    private health: HealthCheckService,
+    private kafkaHealthIndicator: KafkaHealthIndicator
+  ) {}
+
+  @Get()
+  @HealthCheck()
+  healthCheck() {
+    return this.health.check([() => this.kafkaHealthIndicator.isHealty()]);
+  }
+}
+```
 
 ## Disconnect
 
