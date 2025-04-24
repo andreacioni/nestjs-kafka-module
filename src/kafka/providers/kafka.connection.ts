@@ -87,6 +87,11 @@ export function getAsyncKafkaConnectionProvider(
 ): Provider[] {
   return [
     {
+      provide: KAFKA_CONFIGURATION_TOKEN,
+      useFactory: options.useFactory,
+      inject: options.inject,
+    },
+    {
       provide: KafkaMetricsService,
       useFactory: (
         adminClient?: KafkaJS.Admin,
