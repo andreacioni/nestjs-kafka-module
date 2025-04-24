@@ -1,5 +1,10 @@
 import { KafkaJS } from "@confluentinc/kafka-javascript";
-import { DynamicModule, Provider } from "@nestjs/common";
+import {
+  DynamicModule,
+  ForwardReference,
+  Provider,
+  Type,
+} from "@nestjs/common";
 import {
   KafkaConnectionAsyncOptions,
   KafkaConnectionOptions,
@@ -62,25 +67,20 @@ export class KafkaModule {
   static async forRootAsync(
     options: KafkaConnectionAsyncOptions
   ): Promise<DynamicModule> {
-    const providers: Provider[] = [...getAsyncKafkaConnectionProvider(options)];
+    const providers: Provider[] = getAsyncKafkaConnectionProvider(options);
 
-    const modules = this.loadPluginModules();
+    const modules: DynamicModule[] = this.loadPluginModules();
+    const imports: Array<
+      Type<any> | DynamicModule | Promise<DynamicModule> | ForwardReference
+    > = options.imports ?? [];
 
     return {
       module: KafkaModule,
-      imports: [options.imports, ...modules],
-      providers: [
-        {
-          provide: KAFKA_CONFIGURATION_TOKEN,
-          useFactory: options.useFactory,
-          inject: options.inject,
-        },
-        ...providers,
-        getKafkaLifecycleMangerProvider(),
-      ],
+      imports: [...imports, ...modules],
+      providers: [...providers, getKafkaLifecycleMangerProvider()],
       exports: providers,
       global: options.global ?? true,
-    } as DynamicModule;
+    };
   }
 
   static loadPluginModules(): DynamicModule[] {

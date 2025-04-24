@@ -1,4 +1,5 @@
 import { KafkaJS } from "@confluentinc/kafka-javascript";
+import { ConfigModule, ConfigService } from "@nestjs/config";
 import { NestApplication } from "@nestjs/core";
 import { Test } from "@nestjs/testing";
 import { setTimeout as timeout } from "node:timers/promises";
@@ -27,21 +28,23 @@ const deleteTopic = async (admin: KafkaJS.Admin) => {
   await admin.deleteTopics({ topics: ["test_topic"] });
 };
 
-/*describe("App consuming KafkaModule build with forRootAsync", () => {
+describe("App consuming KafkaModule build with forRootAsync", () => {
   let app: NestApplication;
   let startedContainer: StartedDockerComposeEnvironment;
 
   beforeAll(async () => {
     startedContainer = await startTestCompose();
+    const configModule = ConfigModule.forFeature(() => ({
+      host: "127.0.0.1:9092",
+      groupId: "nestjs-rdkafka-test",
+      securityProtocol: "plaintext",
+    }));
 
     const moduleFixture = await Test.createTestingModule({
       imports: [
-        ConfigModule.forFeature(() => ({
-          host: "127.0.0.1:9092",
-          groupId: "nestjs-rdkafka-test",
-          securityProtocol: "plaintext",
-        })),
+        configModule,
         KafkaModule.forRootAsync({
+          imports: [configModule],
           inject: [ConfigService],
           useFactory: (config: ConfigService) => {
             return {
@@ -66,7 +69,6 @@ const deleteTopic = async (admin: KafkaJS.Admin) => {
               },
             };
           },
-          imports: [ConfigModule],
         }),
       ],
     }).compile();
@@ -83,7 +85,7 @@ const deleteTopic = async (admin: KafkaJS.Admin) => {
   it("should mock app defined", async () => {
     expect(app).toBeDefined();
   });
-});*/
+});
 
 describe("App produce and consume message asynchronously", () => {
   let app: NestApplication;
