@@ -18,7 +18,7 @@ A [NestJS](https://nestjs.com/) module wrapper for [node-rdkafka](https://github
 ## Installation
 
 ```bash
-npm i nestjs-kafka-module
+npm i nestjs-kafka-module@2.0.4
 ```
 
 Requirements:
