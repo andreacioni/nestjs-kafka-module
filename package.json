@@ -36,7 +36,7 @@
   "peerDependencies": {
     "@confluentinc/kafka-javascript": "^1.0.0",
     "@confluentinc/schemaregistry": "^1.0.0",
-    "@nestjs/terminus": ">=10.0.0"
+    "@nestjs/terminus": ">=8.0.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.0.0",
