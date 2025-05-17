@@ -32,7 +32,12 @@ jobs:
           npm run build
 
       - name: Publish to NPM registry
-        run: npm publish
+        run:  |
+          if [[ ${{ github.ref_name }} == *"-beta"* ]]; then
+            npm publish --tag beta
+          else
+            npm publish
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       
