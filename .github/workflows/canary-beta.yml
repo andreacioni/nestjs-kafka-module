@@ -1,0 +1,42 @@
+name: Nightly Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Nightly Build
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 21.x, 22.x]
+        nest-version: [v9, v8, v10, v11]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Setup a new folder and copy example file
+        run: |
+          EXAMPLE_FOLDER=/tmp/nest-${{ matrix.nest-version }}
+          mkdir $EXAMPLE_FOLDER
+          mv canary/nest-${{ matrix.nest-version }}/* $EXAMPLE_FOLDER
+          cd $EXAMPLE_FOLDER
+
+          # Install dependencies
+          npm install
+
+          # Install nestjs-kafka-module
+          npm install nestjs-kafka-module --tag beta
+
+          # Show installed dependencies
+          npm ls
+
+          # Test
+          npm test
