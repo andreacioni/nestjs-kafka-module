@@ -1,10 +1,10 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { KAFKA_ADMIN_CLIENT_PROVIDER, KafkaModule } from 'nestjs-kafka-module';
 import {
   IAdminClient,
   KafkaConsumer,
   Producer,
 } from '@confluentinc/kafka-javascript';
+import { Test, TestingModule } from '@nestjs/testing';
+import { KAFKA_ADMIN_CLIENT_TOKEN, KafkaModule } from 'nestjs-kafka-module';
 import { AppController } from './app.controller';
 import { AppModule } from './app.module';
 import { AppService } from './app.service';
@@ -43,7 +43,7 @@ describe('KafkaModule', () => {
 
     producer = app.get<Producer>(Producer);
     consumer = app.get<KafkaConsumer>(KafkaConsumer);
-    adminClient = app.get<IAdminClient>(KAFKA_ADMIN_CLIENT_PROVIDER);
+    adminClient = app.get<IAdminClient>(KAFKA_ADMIN_CLIENT_TOKEN);
   });
 
   describe('Kafka instances', () => {
