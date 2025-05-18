@@ -1,6 +1,6 @@
 {
   "name": "nestjs-kafka-module",
-  "version": "3.0.0-beta.5",
+  "version": "3.0.0-beta.6",
   "description": "A NestJS module wrapper for @confluentinc/kafka-javascript.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -37,7 +37,6 @@
     "@confluentinc/kafka-javascript": "^1.0.0",
     "@confluentinc/schemaregistry": "^1.0.0",
     "@nestjs/terminus": "*"
-    
   },
   "peerDependenciesMeta": {
     "@nestjs/terminus": {
