@@ -1,6 +1,6 @@
 {
   "name": "nestjs-kafka-module",
-  "version": "3.0.0-beta.3",
+  "version": "3.0.0-beta.4",
   "description": "A NestJS module wrapper for @confluentinc/kafka-javascript.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -36,7 +36,7 @@
   "peerDependencies": {
     "@confluentinc/kafka-javascript": "^1.0.0",
     "@confluentinc/schemaregistry": "^1.0.0",
-    "@nestjs/terminus": ">=8.0.0"
+    "@nestjs/terminus": "*"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.0.0",
@@ -55,7 +55,6 @@
     "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "4.33.0",
     "@typescript-eslint/parser": "4.33.0",
-    "@willsoto/nestjs-prometheus": "^6.0.2",
     "commitizen": "^4.3.0",
     "coveralls": "3.1.1",
     "cz-conventional-changelog": "3.3.0",
@@ -133,8 +132,5 @@
       "prettier --write",
       "git add"
     ]
-  },
-  "dependencies": {
-    "prom-client": "^15.1.3"
   }
 }
