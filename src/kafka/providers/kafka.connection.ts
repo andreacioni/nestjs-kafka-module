@@ -1,7 +1,7 @@
 import { KafkaJS } from "@confluentinc/kafka-javascript";
 import { SchemaRegistryClient } from "@confluentinc/schemaregistry";
 import { DynamicModule, Provider } from "@nestjs/common";
-import { HealthIndicatorService } from "@nestjs/terminus";
+//import { HealthIndicatorService } from "@nestjs/terminus";
 import { KafkaAdminClientOptions } from "../interfaces/kafka-admin-client-options";
 import {
   KafkaConnectionAsyncOptions,
@@ -73,10 +73,10 @@ export function getKafkaConnectionProviderList(
 
   providers.push({
     provide: KAFKA_HEALTH_INDICATOR_TOKEN,
-    useFactory: (healthIndicatorService?: HealthIndicatorService) => {
+    useFactory: (healthIndicatorService?: any /*HealthIndicatorService*/) => {
       return new KafkaHealthIndicator(healthIndicatorService, adminClient);
     },
-    inject: [{ token: HealthIndicatorService, optional: true }],
+    inject: [{ token: "HealthIndicatorService", optional: true }],
   });
 
   return providers;
@@ -111,14 +111,14 @@ export function getAsyncKafkaConnectionProvider(
     {
       provide: KAFKA_HEALTH_INDICATOR_TOKEN,
       useFactory: (
-        healthIndicatorService?: HealthIndicatorService,
+        healthIndicatorService?: any, //HealthIndicatorService
         adminClient?: KafkaJS.Admin,
         ...args
       ) => {
         return new KafkaHealthIndicator(healthIndicatorService, adminClient);
       },
       inject: [
-        { token: HealthIndicatorService, optional: true },
+        { token: "HealthIndicatorService", optional: true },
         { token: KAFKA_ADMIN_CLIENT_TOKEN, optional: true },
         ...(options.inject ?? []),
       ],

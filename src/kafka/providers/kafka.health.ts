@@ -1,10 +1,10 @@
 import { KafkaJS } from "@confluentinc/kafka-javascript";
-import { HealthIndicatorService } from "@nestjs/terminus";
+// import { HealthIndicatorService } from "@nestjs/terminus";
 import { debugLog } from "../utils/kafka.utils";
 
 export class KafkaHealthIndicator {
   constructor(
-    private readonly healthIndicatorService?: HealthIndicatorService,
+    private readonly healthIndicatorService?: any, //HealthIndicatorService
     private readonly adminClient?: KafkaJS.Admin
   ) {}
 
