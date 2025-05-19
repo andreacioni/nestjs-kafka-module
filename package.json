@@ -2,8 +2,9 @@
   "name": "nestjs-kafka-module",
   "version": "3.0.0-beta.10",
   "description": "A NestJS module wrapper for @confluentinc/kafka-javascript.",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "main": "index.js",
+  "types": "index.d.ts",
   "engines": {
     "node": ">=12.15.0"
   },
