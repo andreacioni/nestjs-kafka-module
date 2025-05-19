@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x, 20.x, 21.x, 22.x]
-        nest-version: [v9, v8, v10, v11]
+        nest-version: [v9, v10, v11]
 
     steps:
       - name: Checkout Repository
