@@ -20,7 +20,7 @@ describe("KafkaModule", () => {
       imports: [
         AppModule,
         KafkaModule.forRoot({
-          autoConnect: false,
+          autoConnect: true,
           consumer: {
             conf: {
               "group.id": "nestjs-rdkafka-test",
