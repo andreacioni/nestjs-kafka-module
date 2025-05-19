@@ -1,33 +1,41 @@
-import { DynamicModule, Provider } from "@nestjs/common";
-import { IAdminClient, KafkaConsumer, Producer } from "node-rdkafka";
+import { KafkaJS } from "@confluentinc/kafka-javascript";
+import {
+  DynamicModule,
+  ForwardReference,
+  Provider,
+  Type,
+} from "@nestjs/common";
 import {
   KafkaConnectionAsyncOptions,
   KafkaConnectionOptions,
 } from "./interfaces/kafka-connection-options";
 import {
-  KAFKA_ADMIN_CLIENT_PROVIDER,
-  KAFKA_CONFIGURATION_PROVIDER,
+  KAFKA_ADMIN_CLIENT_TOKEN,
+  KAFKA_CONFIGURATION_TOKEN,
+  KAFKA_CONSUMER_TOKEN,
+  KAFKA_PRODUCER_TOKEN,
   getAsyncKafkaConnectionProvider,
   getKafkaConnectionProviderList,
 } from "./providers/kafka.connection";
 import KafkaLifecycleManager from "./providers/kafka.lifecycle";
+import { debugLog } from "./utils/kafka.utils";
 
 const getKafkaLifecycleMangerProvider = (): Provider => {
   return {
     provide: KafkaLifecycleManager,
     useFactory: (
-      adminClient: IAdminClient,
-      producer: Producer,
-      consumer: KafkaConsumer,
+      admin: KafkaJS.Admin,
+      producer: KafkaJS.Producer,
+      consumer: KafkaJS.Consumer,
       config: KafkaConnectionOptions
     ): KafkaLifecycleManager => {
-      return new KafkaLifecycleManager(config, producer, consumer, adminClient);
+      return new KafkaLifecycleManager(config, producer, consumer, admin);
     },
     inject: [
-      KAFKA_ADMIN_CLIENT_PROVIDER,
-      Producer,
-      KafkaConsumer,
-      KAFKA_CONFIGURATION_PROVIDER,
+      KAFKA_ADMIN_CLIENT_TOKEN,
+      KAFKA_PRODUCER_TOKEN,
+      KAFKA_CONSUMER_TOKEN,
+      KAFKA_CONFIGURATION_TOKEN,
     ],
   };
 };
@@ -39,10 +47,13 @@ export class KafkaModule {
    * @internal
    */
   static forRoot(options: KafkaConnectionOptions): DynamicModule {
-    const connectionProvider = getKafkaConnectionProviderList(options);
+    const modules = this.loadPluginModules();
+
+    const connectionProvider = getKafkaConnectionProviderList(options, modules);
 
     return {
       module: KafkaModule,
+      imports: modules,
       providers: [...connectionProvider, getKafkaLifecycleMangerProvider()],
       exports: [...connectionProvider],
       global: options.global ?? true,
@@ -56,22 +67,29 @@ export class KafkaModule {
   static async forRootAsync(
     options: KafkaConnectionAsyncOptions
   ): Promise<DynamicModule> {
-    const providers: Provider[] = [...getAsyncKafkaConnectionProvider(options)];
+    const providers: Provider[] = getAsyncKafkaConnectionProvider(options);
+
+    const modules: DynamicModule[] = this.loadPluginModules();
+    const imports: Array<
+      Type<any> | DynamicModule | Promise<DynamicModule> | ForwardReference
+    > = options.imports ?? [];
 
     return {
       module: KafkaModule,
-      imports: options.imports,
-      providers: [
-        {
-          provide: KAFKA_CONFIGURATION_PROVIDER,
-          useFactory: options.useFactory,
-          inject: options.inject,
-        },
-        ...providers,
-        getKafkaLifecycleMangerProvider(),
-      ],
+      imports: [...imports, ...modules],
+      providers: [...providers, getKafkaLifecycleMangerProvider()],
       exports: providers,
       global: options.global ?? true,
-    } as DynamicModule;
+    };
+  }
+
+  static loadPluginModules(): DynamicModule[] {
+    try {
+      const { TerminusModule } = require("@nestjs/terminus");
+      return [{ module: TerminusModule }];
+    } catch (e) {
+      debugLog("TerminusModule not found ");
+      return [];
+    }
   }
 }

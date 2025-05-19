@@ -13,24 +13,24 @@
 
 ## Description
 
-A [NestJS](https://nestjs.com/) module wrapper for [node-rdkafka](https://github.com/Blizzard/node-rdkafka).
+A [NestJS](https://nestjs.com/) module wrapper for [@confluentinc/kafka-javascript](https://github.com/confluentinc/confluent-kafka-javascript).
 
 ## Installation
 
 ```bash
-npm i nestjs-kafka-module@2.0.4
+npm i nestjs-kafka-module @confluentinc/kafka-javascript
 ```
 
 Requirements:
 
 |         | Min | Max |
 | ------- | --- | --- |
-| Node.JS | 16  | 22  |
-| NestJS  | 8   | 10  |
+| Node.JS | 18  | 22  |
+| NestJS  | 9   | 11  |
 
 ## Basic usage
 
-Initialize a `KafkaModule` with configuration for a `consumer`, `producer` or `adminClient` respectively. A full list of configuration for each item can be found on `node-rdkafka`'s [Configuration](https://github.com/Blizzard/node-rdkafka#configuration) section.
+Initialize a `KafkaModule` with configuration for a `consumer`, `producer` or `adminClient` respectively. All the available configuration parameter for each item can be found on `@confluentinc/kafka-javascript`'s [Configuration](https://github.com/confluentinc/librdkafka/blob/v2.3.0/CONFIGURATION.md) section.
 
 **app.module.ts**
 
@@ -68,16 +68,24 @@ export class AppModule {}
 
 ```typescript
 import { Injectable, Inject } from "@nestjs/common";
-import { KafkaConsumer, Producer, IAdminClient } from "node-rdkafka";
-import { KAFKA_ADMIN_CLIENT_PROVIDER } from "nestjs-kafka-module";
+import {
+  KafkaConsumer,
+  Producer,
+  IAdminClient,
+} from "@confluentinc/kafka-javascript";
+import { KAFKA_ADMIN_CLIENT_TOKEN } from "nestjs-kafka-module";
 
 @Injectable()
 export class CatsService {
   constructor(
-    private readonly kafkaConsumer: KafkaConsumer,
-    private readonly kafkaProducer: Producer,
-    @Inject(KAFKA_ADMIN_CLIENT_PROVIDER)
-    private readonly kafkaAdminClient: IAdminClient
+    @Inject(KAFKA_CONSUMER_TOKEN)
+    private readonly consumer: KafkaJS.Consumer,
+    @Inject(KAFKA_PRODUCER_TOKEN)
+    private readonly producer: KafkaJS.Producer,
+    @Inject(KAFKA_ADMIN_CLIENT_TOKEN) 
+    private readonly admin: KafkaJS.Admin,
+    @Inject(KAFKA_SCHEMA_REGISTRY_TOKEN)
+    private readonly schemaRegistry: SchemaRegistryClient
   ) {
     /* Trying to get an instance of a provider without defining a dedicated configuration will result in an error. */
   }
@@ -86,11 +94,14 @@ export class CatsService {
 
 It is not mandatory to define configuration for any `consumer`, `producer` or `adminClient`, you're free to define just what you need. Keep in mind the table below showing which `Provider` is going to be available in your context based on the defined configuration:
 
-| Configuration | Provider                      |
-| ------------- | ----------------------------- |
-| consumer      | `KafkaConsumer`               |
-| producer      | `Producer`                    |
-| admin         | `KAFKA_ADMIN_CLIENT_PROVIDER` |
+| Configuration        | Token                                                      | Type                   |
+| -------------------- | ---------------------------------------------------------- | ---------------------- |
+| consumer             | "KAFKA_CONSUMER_TOKEN"                                     | `KafkaJS.Consumer`     |
+| producer             | "KAFKA_PRODUCER_TOKEN"                                     | `KafkaJS.Producer`     |
+| admin                | "KAFKA_ADMIN_CLIENT_TOKEN"                                 | `KafkaJS.Admin`        |
+| schemaRegistry       | `SchemaRegistryClient` _or_ "KAFKA_SCHEMA_REGISTRY_TOKEN" | `SchemaRegistryClient` |
+| kafkaHealthIndicator | `KafkaHealthIndicator` _or_ "KAFKA_HEALTH_INDICATOR_TOKEN" | `KafkaHealthIndicator` |
+| metricsService       | `KafkaMetricsService` _or_ "KAFKA_METRICS_TOKEN"           | `KafkaMetricsService`  |
 
 ## Examples
 
@@ -143,7 +154,7 @@ export class ApplicationModule {}
 
 By default, during `KafkaModule` initialization, a connection attempt is done automatically. However this implies that if the broker connection is not available (broker is temporary down/not accessible) during startup, the NestJS initialization may fail.
 
-Is it possible to change this behavior using `autoConnect` flag on `KafkaConsuner` and `Producer` as shown below:
+Is it possible to change this behavior using `autoConnect` flag on `Consumer` and `Producer` as shown below:
 
 ```typescript
 KafkaModule.forRoot({
@@ -163,7 +174,55 @@ KafkaModule.forRoot({
 });
 ```
 
-### Disconnect
+## Termination
+
+In case `autoConnect` is set to true, disconnection in handled automatically by the module attaching to `onApplicationShutdown()` hook. However, for this to work you must enable shutdown hooks by doing the following in your `bootstrap.ts`:
+
+```typescript
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+
+  // Starts listening for shutdown hooks
+  app.enableShutdownHooks();
+
+  await app.listen(process.env.PORT ?? 3000);
+}
+bootstrap();
+```
+
+## Health check
+
+Thanks to `@nestjs/terminus` and its integration with NestJS is it possible to expose an indicator to check the status between the application and the broker. This library already expose an indicator when `@nestjs/terminus` is available. You can use it in you `/health` controller by doing this:
+
+```typescript
+import {
+  HealthCheck,
+  HealthCheckService,
+} from "@nestjs/terminus";
+import {
+  KAFKA_ADMIN_CLIENT_TOKEN,
+  KAFKA_CONSUMER_TOKEN,
+  KAFKA_PRODUCER_TOKEN,
+} from "nestjs-kafka-module";
+import { KafkaHealthIndicator } from "nestjs-kafka-module";
+
+
+@Controller("health")
+export class HealthController {
+  constructor(
+    private health: HealthCheckService,
+    private kafkaHealthIndicator: KafkaHealthIndicator
+  ) {}
+
+  @Get()
+  @HealthCheck()
+  healthCheck() {
+    return this.health.check([() => this.kafkaHealthIndicator.isHealty()]);
+  }
+}
+```
+
+## Disconnect
 
 All clients will be automatically disconnected from Kafka `onModuleDestroy`. You can manually disconnect by calling:
 

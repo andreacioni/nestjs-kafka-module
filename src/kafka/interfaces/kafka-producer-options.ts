@@ -1,8 +1,6 @@
-import * as rdkafka from "node-rdkafka";
+import { KafkaJS } from "@confluentinc/kafka-javascript";
 
 export interface KafkaProducerOptions {
-  conf: rdkafka.ProducerGlobalConfig;
-  topicConf?: rdkafka.ProducerTopicConfig;
-  metadataConf?: rdkafka.MetadataOptions;
+  conf: KafkaJS.ProducerConstructorConfig;
   autoConnect?: boolean;
 }
